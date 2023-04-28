@@ -6,7 +6,7 @@ const { get } = require('http');
 const { start } = require('repl');
 
 function getMerchant({idMerchant}){
-    let stringQuery = "SELECT * FROM merchant where id = " + idMerchant;
+    let stringQuery = `SELECT * FROM merchant where id = ${idMerchant}`;
     return new Promise(function(resolve, reject) {
         con.query(stringQuery, function (err, rows, fields) {
             if (err) {
@@ -328,7 +328,7 @@ async function getFabricComposition(idFabric){
 }
 
 function findFibers(fiberIds){
-    let stringQuery = "select * from fiber where id in ( "+ fiberIds +" )";
+    let stringQuery = `select * from fiber where id in (${fiberIds})`;
     return new Promise(function(resolve, reject) {
         con.query(stringQuery, function (err, rows, fields) {
             if (err) {
@@ -338,21 +338,8 @@ function findFibers(fiberIds){
         });
     });
 }
-function getLastFabricId(){
-    let stringQuery = "SELECT MAX(ID) + 1 Id FROM fabric";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-
-            if (err) {
-                return reject(err);
-            }
-            resolve(rows);
-        });
-    });
-}
-
 function getFabric(description, weight){
-    let stringQuery = "SELECT * FROM fabric where description = '" + description + "' and weight = " + weight;
+    let stringQuery = `SELECT * FROM fabric where description = ${description} and weight = ${weight}`;
 
     return new Promise(function(resolve, reject) {
         con.query(stringQuery, function (err, rows, fields) {
@@ -361,18 +348,6 @@ function getFabric(description, weight){
                 return reject(err);
             }
 
-            resolve(rows);
-        });
-    });
-}
-
-async function getLastFiberPercentageId(){
-    let stringQuery = "SELECT MAX(ID) + 1 Id FROM percentage_fiber";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
             resolve(rows);
         });
     });
@@ -389,28 +364,20 @@ function saveNewFabric(idMerchant, description, weight){
                 idFab = res[0].ID;
                 resolve(idFab);
         }else{
-            getLastFabricId().then(result => {
-
-                if(result[0].Id == 0){
-
-                    idFab = 1;
-                }else{
-
-                    idFab = parseInt(result[0].Id) + 1;
-                }
                 insertFabric(idFab, description, weight, idMerchant).then(res =>{
                     resolve(idFab);
                 })
-            })
+            
     }
 
     });    })
 }
 
-function insertFabric(idFab, description, weight, idMerchant){
+function insertFabric(description, weight, idMerchant){
     return new Promise(function(resolve, reject){
 
-        let stringQuery = "insert into fabric (ID, DESCRIPTION,WEIGHT, ID_MERCHANT) values ( " + idFab +", '"+ description + "' , " + weight+ ", " + idMerchant + ")"; 
+        let stringQuery = `insert into fabric (ID, DESCRIPTION,WEIGHT, ID_MERCHANT) 
+                           values (${idFab}, ${description},${weight},${idMerchant})`; 
 
         con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
@@ -517,7 +484,7 @@ async function saveFiberPercentage(fabric,idFabric){
     });
 }
 function findDesigner(idDesigner, idMerchant){
-    let stringQuery = "select * from designer where id = " + idDesigner + " and id_merchant = " + idMerchant;
+    let stringQuery = `select * from designer where id = ${idDesigner} and id_merchant = ${idMerchant}`;
     return new Promise(function(resolve, reject) {
         con.query(stringQuery, function (err, rows, fields) {
             if (err) {
@@ -527,29 +494,12 @@ function findDesigner(idDesigner, idMerchant){
         });
     });
 }
-
-function getLastSizeCurveId(){
-    let stringQuery = "SELECT MAX(ID) + 1 Id FROM size_curve";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
-            resolve(rows);
-        });
-    });
-}
-
 function saveSizeCurve(sizeCurve ,idMerchant){
     let id;
     return new Promise(function(resolve, reject) {
-    getLastSizeCurveId().then(result => {
-        if(result[0].Id == 0){
-            id = 1;
-        }else{
-            id = parseInt(result[0].Id) + 1;
-        }
-        let stringQuery = "insert into size_curve values(" + id + ", '-'," + idMerchant + ","  + sizeCurve[0] + "," + sizeCurve[1] + "," + sizeCurve[2] + "," + sizeCurve[3] + "," + sizeCurve[4] + "," + sizeCurve[5] + "," + sizeCurve[6] + "," + sizeCurve[7] + "," + sizeCurve[8]  + ");";
+        let stringQuery = `insert into size_curve values('-',${idMerchant},${sizeCurve[0]},${sizeCurve[1]},
+                           ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
+                           ${sizeCurve[7]},${sizeCurve[8]})`;
             con.query(stringQuery, function (err, rows, fields) {
                 if (err) {
                     return reject(err);
@@ -557,12 +507,12 @@ function saveSizeCurve(sizeCurve ,idMerchant){
                 resolve(id);
             });
         });
-    });
+    
 }
 
 async function saveFiberPercentager(idFiber, percentage, idFabric){
     return new Promise(function(resolve, reject) {
-        let stringQuery = "insert into percentage_fiber values (" + idFiber + ", " + percentage + ", " +  idFabric +")";   
+        let stringQuery = `insert into percentage_fiber values (${idFiber},${percentage},${idFabric})`;   
         con.query(stringQuery, function (err, rows, fields) {
                 if (err) {
                     return reject(err);
@@ -572,50 +522,20 @@ async function saveFiberPercentager(idFiber, percentage, idFabric){
         });
 
 }
-function getLastProductId(){
-    let stringQuery = "SELECT MAX(ID) as max_id, MAX(product_order) as product_order FROM product";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
-            resolve(rows);
-        });
-    });
-}
-
-function getLastPictureId(){
-    let stringQuery = "SELECT MAX(ID) + 1 Id FROM product_picture";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
-            resolve(rows);
-        });
-    });
-}
 
 function savePicture(picture, idProuct, isMain, pictNum){
     let id;
-    return new Promise(function(resolve, reject) {
-        getLastPictureId().then(result => {  
-            if(result[0].Id == null){
-                id = 1;
-            }else{
-                id = parseInt(result[0].Id) + pictNum;
-            }                    
-            let stringQuery = "INSERT INTO product_picture VALUES (" + id + ", '"+  picture +"', "+ idProuct + ", " +  isMain + ")";  
+    return new Promise(function(resolve, reject) {      
+            let stringQuery = `INSERT INTO product_picture VALUES (${picture}, ${idProuct}, ${isMain})`;
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
                         return reject(err);
                     }
                     resolve(rows);
                 });
-            });
-        });
+            })
 }
-
+//TODO MG: Que eran esos 1
 function saveProduct(prod, idSizeCurve){
     let idProd;
     let order;
@@ -623,16 +543,18 @@ function saveProduct(prod, idSizeCurve){
     let cost = prod.cost === undefined ? 0 : prod.cost;
     let costInStore = prod.costInStore === undefined ? 0 : prod.costInStore;
     return new Promise(function(resolve, reject) {
-        getLastProductId().then(result => {   
-            if(result[0].max_id == null){
-                idProd = 1;
-                order = 1000;
-            }else{
-                idProd = (parseInt(result[0].max_id) + 1);  
-                order = (parseInt(result[0].product_order) + 1);    
-            }
-            let shipping = prod.idShipping === " " ? 3 : prod.idShipping;
-            let stringQuery = "INSERT INTO product (ID, NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON, SHIPPING_DATE, ID_COUNTRY, ID_SHIPPING, ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, PRODUCT_ORDER,ID_DEPARTMENT) VALUES (" + idProd + ", '"+  prod.name +"', "+ prod.quantity +", "+prod.weight +", '"+ detail +"', 1 , " + prod.idMerchant+", "+prod.idCollection +", "+prod.idTipology +" , 1 ,"+ idSizeCurve +", 1 ,"+prod.idSeason +",  STR_TO_DATE( " + getFormattedDate(prod.shippingDate) + ", '%d,%m,%Y'), "+ prod.idCountry +", "+ shipping +", " + prod.idDesigner+ ", 1, " + cost +" , " + costInStore +"," + prod.idCountryDestination +", " + prod.idSupplier + ", "+ order +", " + prod.idDepartment + " )";     
+            let shipping = prod.idShipping === " " ? 3 : prod.idShipping;//TODO MG: ?? que es el 3?
+            let stringQuery = `INSERT INTO product (ID, NAME, QUANTITY, WEIGHT, DETAIL, 
+                               ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
+                               ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, 
+                               ID_SEASON, SHIPPING_DATE, ID_COUNTRY, ID_SHIPPING, 
+                               ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, 
+                               ID_COUNTRY_DESTINATION, ID_SUPPLIER, PRODUCT_ORDER,
+                               ID_DEPARTMENT) VALUES (${prod.name}, ${prod.quantity},${prod.weight},${detail},
+                                1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,${idSizeCurve},
+                                1,${prod.idSeason},STR_TO_DATE("+ getFormattedDate(prod.shippingDate) + ", '%d,%m,%Y'),
+                                ${prod.idCountry},${shipping},${prod.idDesigner}, 1,${cost},${costInStore},
+                                ${prod.idCountryDestination},${prod.idSupplier},${order},${prod.idDepartment})`;     
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
 
@@ -642,14 +564,12 @@ function saveProduct(prod, idSizeCurve){
                     resolve(idProd);
                 });
             });
-        });
+        
 }
 
 function getProuct(idProduct){
-    return new Promise(function(resolve, reject) {
-        getLastProductId().then(result => {     
-                                                   
-            let stringQuery = "SELECT * FROM product where id = " + idProduct;        
+    return new Promise(function(resolve, reject) {                           
+            let stringQuery = `SELECT * FROM product where id = ${idProduct}`;        
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
                         return reject(err);
@@ -657,25 +577,14 @@ function getProuct(idProduct){
                     resolve(rows);
                 });
             });
-        });
 }
 
-function getLastProducCombo(){
-    let stringQuery = "SELECT MAX(ID) + 1 Id FROM product_combo";
-    return new Promise(function(resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
-            resolve(rows);
-        });
-    });
-}
-
+//TODO: MG Que es el 1
 function saveComboAvio(idCombo,idAvio,idColor, idProduct, idStatus){
     let shortDate = new Date().toLocaleDateString();
     return new Promise(function(resolve, reject) {                                               
-        let stringQuery = "INSERT INTO combo_avio values ("+idCombo+", "+idAvio+", " +idColor+ " , "+idProduct+","+idStatus+", "+ shortDate + ", 1)";   
+        let stringQuery = `INSERT INTO combo_avio values (${idCombo},${idAvio},${idColor},${idProduct},${idStatus},
+                                                          ${shortDate}, 1)`;   
 
         con.query(stringQuery, function (err, rows, fields) { 
                 if (err) {
@@ -688,23 +597,10 @@ function saveComboAvio(idCombo,idAvio,idColor, idProduct, idStatus){
         });
 }
 
-
-function getLastPrintId(){
-    return new Promise(function(resolve, reject) {                                               
-            let stringQuery = "SELECT MAX(ID) + 1 as id FROM printimpacta";      
-            con.query(stringQuery, function (err, rows, fields) {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(rows);
-                });
-            });
-}
-
 function getIdPrint(idPrint){
     return new Promise(function(resolve, reject) {     
         
-        let stringQuery = "select * from printimpacta where id = " + idPrint;
+        let stringQuery = `select * from printimpacta where id = ${idPrint}`;
         con.query(stringQuery, function (err, rows, fields) {
                 if (err) {
 
@@ -716,9 +612,9 @@ function getIdPrint(idPrint){
         });
 }
 
-function savePrint(idPrint, description, colorCount){
+function savePrint(description, colorCount){
     return new Promise(function(resolve, reject) {                              
-            let stringQuery = "insert into printimpacta values ( " + idPrint + " , '" + description + "', "+ colorCount +")";      
+            let stringQuery = `insert into printimpacta values ( ${description},${colorCount})`;      
 
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
@@ -732,31 +628,22 @@ function savePrint(idPrint, description, colorCount){
 }
 function saveComboFabric(idCombo, idFabric, idColor, idPrint, printDescription , colorCount, placement, idProduct, idStatus,i){
     return new Promise(function(resolve, reject) { 
-                getLastPrintId().then(result => {
-                    idPrint = result[0].id;
-                   if(idPrint === 0){
-                    savePrint(idPrint + 1, printDescription, colorCount).then(result =>{
-
+                    savePrint(printDescription, colorCount).then(result =>{
                             insertComboFabric(idCombo + i, idFabric, idColor, idPrint, placement, idProduct, idStatus).then(result =>{
                                 resolve(result);
-                            })
+                            });
                         }
                     );
-                   }else{
-                    insertComboFabric(idCombo + i, idFabric, idColor, idPrint, placement, idProduct, idStatus).then(result =>{
-
-                        resolve(result);
-                    })
-                   }
                 });
-    });
 }
-
+//TODO: MG Que son esos 1?
 function insertComboFabric(idCombo, idFabric, idColor, idPrint, placement, idProduct, idStatus){
     let shortDate = new Date().toLocaleDateString();
     return new Promise(function(resolve, reject) {    
        
-        let stringQuery = "INSERT INTO combo_fabric values ("+idCombo+", "+idFabric+", " +idColor+ ", " +idPrint+" , " + idProduct+","+placement + ", 1 , 1, "+ shortDate +" , "+ shortDate +", 1, 1,1, "+shortDate+ ",1)";
+        let stringQuery = `INSERT INTO combo_fabric values (${idCombo},${idFabric},${idColor},${idPrint},${idProduct},
+                                                            ${placement},1 , 1, ${shortDate},${shortDate},1,1,1,
+                                                            ${shortDate},1)`;
         con.query(stringQuery, function (err, rows, fields) {
                 if (err) {
                     return reject(err);
@@ -768,16 +655,7 @@ function insertComboFabric(idCombo, idFabric, idColor, idPrint, placement, idPro
 }
 function saveComboProduct(idProduct, quantity) {
     return new Promise(function(resolve, reject) {
-        getLastProducCombo().then(result => {  
-            if(result.length > 0){
-                var lastIdComboResult = result[0].Id;
-                if(result[0].Id === null){
-                    lastIdComboResult = 1;
-                }else{
-                    lastIdComboResult = parseInt(lastIdComboResult) + 1;
-                }
-                getComboId(idProduct).then(resultCombo => {
-
+                getComboId(idProduct).then(resultCombo => {//Este está OK?
                     if(resultCombo.length > 0){
                         var lastComboIdResult = resultCombo[0].id;
                         if(lastComboIdResult === null){
@@ -785,7 +663,7 @@ function saveComboProduct(idProduct, quantity) {
                         }else{
                             lastComboIdResult = parseInt(lastComboIdResult) + 1;
                         }
-                        let stringQuery = "insert into product_combo values (" + lastIdComboResult + ", " + idProduct +", "+lastComboIdResult+", " +quantity+ " )";     
+                        let stringQuery = `into product_combo values (${idProduct},${lastComboIdResult},${quantity})`;     
                         con.query(stringQuery, function (err, rows, fields) {
                             if (err) {
                                 return reject(err);
@@ -794,8 +672,6 @@ function saveComboProduct(idProduct, quantity) {
                         });
                     }
                 });     
-            } 
-        });
     });
 }
 
@@ -804,7 +680,7 @@ function saveComboProduct(idProduct, quantity) {
 
 function getComboId(idProduct){
     return new Promise(function(resolve, reject) {                                               
-            let stringQuery = "SELECT MAX(ID_COMBO) as id FROM PRODUCT_COMBO WHERE ID_PRODUCT = "+ idProduct+"";      
+            let stringQuery = `SELECT MAX(ID_COMBO) as id FROM PRODUCT_COMBO WHERE ID_PRODUCT = ${idProduct}`;      
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
                         return reject(err);
@@ -815,9 +691,9 @@ function getComboId(idProduct){
 }
 
 function saveProductFabric(fabric, idProduct){
-    return new Promise(function(resolve, reject) {
-        getLastProductId().then(result => {                                                     
-            let stringQuery = "insert into product_fabric values (" + idProduct+ ", " + fabric.idFabric+", "+ fabric.placement+", " +fabric.idColor+ ", "+ (fabric.idPrint == undefined ? 0 : fabric.idPrint) +" )";      
+    return new Promise(function(resolve, reject) {                                                 
+            let stringQuery = `insert into product_fabric values (${idProduct},${fabric.idFabric},${fabric.placement},
+                               ${fabric.idColor},${(fabric.idPrint == undefined ? 0 : fabric.idPrint)})`;      
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
                         return reject(err);
@@ -825,7 +701,6 @@ function saveProductFabric(fabric, idProduct){
                     resolve(rows);
                 });
             });
-    });
 }
 
 function getFormattedDate(strDate){
@@ -834,9 +709,8 @@ function getFormattedDate(strDate){
 }
 
 function getAvio(idAvio){
-    return new Promise(function(resolve, reject) {
-        getLastProductId().then(result => {                                                       
-            let stringQuery = "SELECT * FROM AVIO WHERE ID IN ( " + idAvio + " )";  
+    return new Promise(function(resolve, reject) {                                                     
+            let stringQuery = `SELECT * FROM AVIO WHERE ID IN (${idAvio})`;  
             con.query(stringQuery, function (err, rows, fields) {
                     if (err) {
                         return reject(err);
@@ -844,7 +718,6 @@ function getAvio(idAvio){
                     resolve(rows);
                 });
             });
-    });
 }
 
 
