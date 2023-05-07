@@ -18,7 +18,10 @@ app.use(cors());
 app.options("/*", (req, res) => {
     res.sendStatus(200);
 });
-app.listen(port, () => {});
+
+app.listen(port, () => {
+    console.log("Server running on port " + port);
+});
 
 // Use your existing express app as before
 app.use(express.json());
