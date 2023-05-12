@@ -157,6 +157,7 @@ router.route("/getMerchantFibers/:IdMerchant").get((req, res) => {
 });
 
 router.route("/getFabrics/:IdMerchant").get((req, res) => {
+    console.log("aaaaaaaaaaaaaaaaa")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getFabrics(req.params.IdMerchant)
@@ -171,6 +172,7 @@ router.route("/getFabrics/:IdMerchant").get((req, res) => {
 });
 
 router.route("/getShippingTypes/:IdMerchant").get((req, res) => {
+    console.log("hola 2")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getShippingTypes({ idMerchant: req.params.IdMerchant })
@@ -184,4 +186,31 @@ router.route("/getShippingTypes/:IdMerchant").get((req, res) => {
         });
 });
 
+router.route("/getMerchantBrands/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantBrands({ idMerchant: req.params.IdMerchant })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
+router.route("/getMerchantConcepts/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantConcepts({ idMerchant: req.params.IdMerchant })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 module.exports = router;

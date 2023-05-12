@@ -69,6 +69,7 @@ module.exports = class ImpactaDataSheet {
   }
 };
 
+
 async function handleFabricCombo(savedFabrics, idProduct, data) {
   // let aviosPr = data.avios.map((avio) =>
   //   merchantRepository.getAvio(avio.idAvio)
@@ -330,6 +331,7 @@ async function findShippingType(idShippingType) {
 //IdOrigin e IdDestination
 //idCountryDestination
 function validateData(data) {
+  validateMerchantBrand(data.idMerchantBrand);
   validateShippingDate(data.shippingDate);
   validateName(data.name);
   validateQuantity(data.quantity);
@@ -346,6 +348,16 @@ function validateData(data) {
   validateCosts(data.cost, data.costInStore);
   validateComboData(data);
   validateIdDepartment(data.idDepartment);
+  validateYear(data.year);
+  validateProyecta(data.proyecta);
+  validateConcept(data.idConcept);
+}
+function validateConcept(idConcept){
+  if(idConcept === undefined){
+    throw new Error("Debe ingresar un concepto.");
+  }else if(idConcept < 1){
+    throw new Error("Concepto invalido.");
+  }
 }
 
 function validateComboData(data) {
@@ -364,9 +376,35 @@ function validateFabric(fabric) {
     } 
   });
 }
+
+function validateYear(year){
+  if(year === undefined || year.isNaN){
+    throw new Error("Debe ingresar un año.");
+  }
+  if(year > 99){
+    throw new Error("El año debe contener como máximo 2 cifras.");
+  }
+}
+
+function validateProyecta(proyecta){
+  if(proyecta === undefined){
+    throw new Error("Debe ingresar si el producto es proyecta.");
+  }
+  if(proyecta !== 1 && proyecta !== 0){
+    throw new Error("Valor proyecta invalido.");
+  }
+}
+
 function validateIdShipping(idShipping) {
   if (idShipping === undefined) {
     throw new Error("Debe ingresar un id de tipo de embarque.");
+  }
+}
+
+function validateMerchantBrand(idMerchantBrand){
+  console.log(idMerchantBrand)
+  if(idMerchantBrand === undefined || idMerchantBrand < 1){
+    throw new Error("Marca invalida");
   }
 }
 
@@ -374,6 +412,7 @@ function validateIdDesigner(idShipping) {
   if (idShipping === undefined) {
     throw new Error("Debe ingresar un id de un disenador.");
   }
+
 }
 
 function validateIdDepartment(idShipping) {

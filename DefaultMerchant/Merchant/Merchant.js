@@ -189,4 +189,20 @@ module.exports = class ImpactaMerchant {
         });
     }
 
+    getMerchantBrands({idMerchant}){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantBrands(idMerchant).then(result => {
+                console.log(result)
+                resolve(result); 
+            })
+        })
+    }
+
+    getMerchantConcepts({idMerchant}){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantConcepts(idMerchant).then(result => {
+                resolve(result); 
+            })
+        })
+    }
 };

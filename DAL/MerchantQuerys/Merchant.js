@@ -577,13 +577,14 @@ function saveProduct(prod, idSizeCurve) {
     //let shipping = ; //TODO MG: ?? que es el 3?
     let stringQuery = `INSERT INTO PROD (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
                        ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON, SHIPPING_DATE, ID_COUNTRY, ID_SHIPPING, 
-                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_DEPARTMENT) 
+                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_DEPARTMENT, ID_MERCHANT_BRAND, 
+                       YEAR, PROYECTA, ID_CONCEPT) 
                        VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
                        1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,1,${prod.idSeason},
                        STR_TO_DATE(${getFormattedDate(prod.shippingDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
-                       ${prod.idDepartment})`;//order
+                       ${prod.idDepartment},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept})`;//order
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -591,6 +592,30 @@ function saveProduct(prod, idSizeCurve) {
       resolve(rows.insertId);
     });
   });
+}
+
+function getMerchantBrands(idMerchant){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, NAME, CODE, ID_MERCHANT FROM MERCHANT_BRAND WHERE ID_MERCHANT = ${idMerchant}`;//order
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
+
+function getMerchantConcepts(idMerchant){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, DESCRIPTION FROM CONCEPT WHERE ID_MERCHANT = ${idMerchant}`;//order
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
 }
 
 function getProuct(idProduct) {
@@ -794,9 +819,7 @@ module.exports.saveSizeCurve = saveSizeCurve;
 module.exports.saveProduct = saveProduct;
 module.exports.findDesigner = findDesigner;
 module.exports.saveFabric = saveFabric;
-//module.exports.saveProductFabric = saveProductFabric;
 module.exports.saveCombo = saveCombo;
-// module.exports.saveComboProduct = saveComboProduct;
 module.exports.saveComboFabric = saveComboFabric;
 module.exports.saveComboAvio = saveComboAvio;
 module.exports.getAvio = getAvio;
@@ -811,3 +834,5 @@ module.exports.getFabricFromId = getFabricFromId;
 module.exports.saveFiberPercentage = saveFiberPercentage;
 module.exports.saveNewFabricInternal = saveNewFabricInternal;
 module.exports.getFabricComposition = getFabricComposition;
+module.exports.getMerchantBrands = getMerchantBrands;
+module.exports.getMerchantConcepts = getMerchantConcepts;
