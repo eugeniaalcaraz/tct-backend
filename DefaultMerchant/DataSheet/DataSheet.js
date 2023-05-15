@@ -29,6 +29,9 @@ module.exports = class ImpactaDataSheet {
         } else {
           try {//Valido los datos de los combos - podemos sacarlo para mayor eficiencia
             validateData(data);
+            if(data.idRise !== undefined){
+              await validateIdRise(data.idTipology);
+            }
             await findCountry(data.idCountry);
             await findShippingType(data.idShipping);
             await findTipology(data.idTipology);
@@ -41,7 +44,8 @@ module.exports = class ImpactaDataSheet {
             return;
           }
         }
-        idProduct = await saveProduct(data, idSizeCurve);
+        let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
+        idProduct = await saveProduct(data, prodNumber);
         let savedFabrics = await saveFabrics(data);
         //let idCombo = await saveCombo(idProduct, data.quantity);
         //await savePictures(data, idProduct);
@@ -111,6 +115,23 @@ async function getProduct(idProduct) {
   try {
     const result = await merchantRepository.getProuct(idProduct);
     if (result.length > 0) {
+      return result;
+    } else {
+      throw new Error("Error - El producto enviado no existe.");
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function validateIdRise(idTipology) {
+  try {
+    const result = await merchantRepository.getTipology(idTipology);
+    if (result.length > 0) {
+      if(result[0].DESCRIPTION !== "Jean"){
+        console.log(result[0].DESCRIPTION)
+        throw new Error("Error - No puede ingresar un tiro cuando la tipología no es jean.");
+      }
       return result;
     } else {
       throw new Error("Error - El producto enviado no existe.");
@@ -347,10 +368,13 @@ function validateData(data) {
   validateIdDesigner(data.idDesigner);
   validateCosts(data.cost, data.costInStore);
   validateComboData(data);
-  validateIdDepartment(data.idDepartment);
+  validateIdIndustry(data.idIndustry);
   validateYear(data.year);
   validateProyecta(data.proyecta);
   validateConcept(data.idConcept);
+  validateIdLine(data.idLine);
+  validateIdBodyFit(data.idBodyFit);
+
 }
 function validateConcept(idConcept){
   if(idConcept === undefined){
@@ -402,9 +426,14 @@ function validateIdShipping(idShipping) {
 }
 
 function validateMerchantBrand(idMerchantBrand){
-  console.log(idMerchantBrand)
   if(idMerchantBrand === undefined || idMerchantBrand < 1){
     throw new Error("Marca invalida");
+  }
+}
+
+function validateIdBodyFit(idBodyFit){
+  if(idBodyFit === undefined){
+    throw new Error("Debe ingresar un id de body fit");
   }
 }
 
@@ -415,9 +444,14 @@ function validateIdDesigner(idShipping) {
 
 }
 
-function validateIdDepartment(idShipping) {
-  if (idShipping === undefined) {
-    throw new Error("Debe ingresar un id de un departamento.");
+function validateIdLine(idLine){
+  if (idLine === undefined) {
+    throw new Error("Debe ingresar un id correspondiente a una linea.");
+  }
+}
+function validateIdIndustry(idIndustry) {
+  if (idIndustry === undefined) {
+    throw new Error("Debe ingresar un id de un rubro.");
   }
 }
 

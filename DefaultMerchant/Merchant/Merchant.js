@@ -20,13 +20,53 @@ module.exports = class ImpactaMerchant {
         });
     }
 
+    getMerchantLines({idMerchant}){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantLines(idMerchant).then(result => {
+                resolve(result);
+            });
+        });
+    }
 
-    getMerchantDepartments({idMerchant}){
+    getMerchantBodyFit({idMerchant}){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantBodyFit(idMerchant).then(result => {
+                resolve(result);
+            });
+        });
+    }
+
+    getMerchantRise({idMerchant}){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantRise(idMerchant).then(result => {
+                resolve(result);
+            });
+        });
+    }
+
+    getMerchantManagmentUnits({idMerchant}){
         var merchant = new ImpactaMerchant();
         return new Promise(function(resolve, reject){
         merchant.merchantExists({idMerchant}).then(result =>{
             if(result.length > 0){
-                MerchantRepository.getMerchantDepartments({idMerchant}).then(result => {
+                MerchantRepository.getMerchantManagmentUnits({idMerchant}).then(result => {
+                    resolve(result);
+                }).catch(err => {
+                    reject("Error - Whoops algo salió mal");
+                });
+            }else{
+                reject("Error - El comercio ingresado no existe");
+            }
+        });
+    });
+    }
+
+    getMerchantIndustries({idMerchant, idManagmentUnit}){
+        var merchant = new ImpactaMerchant();
+        return new Promise(function(resolve, reject){
+        merchant.merchantExists({idMerchant}).then(result =>{
+            if(result.length > 0){
+                MerchantRepository.getMerchantIndustries({idMerchant, idManagmentUnit}).then(result => {
                     resolve(result);
                 }).catch(err => {
                     reject("Error - Whoops algo salió mal");
@@ -99,15 +139,16 @@ module.exports = class ImpactaMerchant {
        });
     }
 
-    getTipologies(){
+    getTipologies({idMerchant, idIndustry}){
         return new Promise(function(resolve, reject){
-            MerchantRepository.getTipologies().then(result => {
+            MerchantRepository.getTipologies(idMerchant, idIndustry).then(result => {
                 resolve(result);
             }).catch(err => {
                 reject("Error - Whoops algo salió mal");
             });
        });
     }
+
 
     getFibers(){
         return new Promise(function(resolve, reject){

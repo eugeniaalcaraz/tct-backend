@@ -3,10 +3,10 @@ const DynamicClass = require("../DefaultMerchant/MerchantBuilder");
 let router = express.Router();
 const pool = require("../DAL/configuration/ConfigurationDB");
 
-router.route("/getMerchantDepartments/:IdMerchant").get((req, res) => {
+router.route("/getMerchantManagmentUnits/:IdMerchant").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
-        .getMerchantDepartments({ idMerchant: req.params.IdMerchant })
+        .getMerchantManagmentUnits({ idMerchant: req.params.IdMerchant })
         .then((result) => {
             res.status(200);
             res.send(result);
@@ -16,6 +16,22 @@ router.route("/getMerchantDepartments/:IdMerchant").get((req, res) => {
             res.send(err);
         });
 });
+
+router.route("/getMerchantIndustries/:IdMerchant/:IdManagmentUnit").get((req, res) => {
+    console.log("hola")
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantIndustries({ idMerchant: req.params.IdMerchant, idManagmentUnit: req.params.IdManagmentUnit })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
 
 router.route("/getMerchantSeasons/:IdMerchant").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
@@ -58,10 +74,10 @@ router.route("/getCountries/:IdMerchant").get((req, res) => {
         });
 });
 
-router.route("/getTipologies/:IdMerchant").get((req, res) => {
+router.route("/getTipologies/:IdMerchant/:IdIndustry").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
-        .getTipologies()
+        .getTipologies({ idMerchant: req.params.IdMerchant, idIndustry: req.params.IdIndustry })
         .then((result) => {
             res.status(200);
             res.send(result);
@@ -71,6 +87,7 @@ router.route("/getTipologies/:IdMerchant").get((req, res) => {
             res.send(err);
         });
 });
+
 
 router.route("/getFibers/:IdMerchant").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
@@ -204,6 +221,49 @@ router.route("/getMerchantConcepts/:IdMerchant").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getMerchantConcepts({ idMerchant: req.params.IdMerchant })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
+router.route("/getMerchantLines/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantLines({ idMerchant: req.params.IdMerchant })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
+
+router.route("/getMerchantBodyFit/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantBodyFit({ idMerchant: req.params.IdMerchant })
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
+router.route("/getMerchantRise/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantRise({ idMerchant: req.params.IdMerchant })
         .then((result) => {
             res.status(200);
             res.send(result);

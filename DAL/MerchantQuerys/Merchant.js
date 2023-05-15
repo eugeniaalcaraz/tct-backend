@@ -72,10 +72,9 @@ function getMerchantDepartment({ idMerchant, idDepartment }) {
   });
 }
 
-function getMerchantDepartments({ idMerchant }) {
+function getMerchantManagmentUnits({ idMerchant }) {
   let stringQuery =
-    "select dep.ID Id, dep.DESCRIPTION Description from department dep inner join department_merchant merchantDept on dep.ID = merchantDept.ID_DEPARTMENT where merchantDept.ID_MERCHANT = " +
-    idMerchant;
+  `SELECT ID, DESCRIPTION FROM MANAGMENT_UNIT WHERE ID_MERCHANT = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -85,6 +84,21 @@ function getMerchantDepartments({ idMerchant }) {
     });
   });
 }
+
+function getMerchantIndustries({ idMerchant, idManagmentUnit }) {
+    let stringQuery =
+    `SELECT ind.ID, ind.DESCRIPTION FROM INDUSTRY ind INNER JOIN INDUSTRY_MANAGMENT_UNIT indManagUnit on
+    ind.ID = indManagUnit.ID_INDUSTRY WHERE ind.ID_MERCHANT = ${idMerchant} AND indManagUnit.ID_MANAGMENT_UNIT = ${idManagmentUnit}`;
+    console.log(stringQuery)
+    return new Promise(function (resolve, reject) {
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
 
 function getMerchantSeasons({ idMerchant }) {
   let stringQuery =
@@ -139,8 +153,8 @@ function getCountries() {
   });
 }
 
-function getTipologies() {
-  let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM TIPOLOGY";
+function getTipologies(IdMerchant, idIndustry) {
+  let stringQuery = `SELECT ID Id, DESCRIPTION Description, CODE Code, WEIGHT Weight FROM TIPOLOGY WHERE ID_INDUSTRY = ${idIndustry}`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -151,6 +165,7 @@ function getTipologies() {
   });
 }
 
+  
 function getFibers() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM FIBER";
   return new Promise(function (resolve, reject) {
@@ -186,6 +201,32 @@ function getTrims() {
     });
   });
 }
+
+function getMerchantLines(idMerchant) {
+    let stringQuery = `SELECT ID, DESCRIPTION FROM LINE WHERE ID_MERCHANT = ${idMerchant}`;
+    return new Promise(function (resolve, reject) {
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
+
+  
+function getMerchantBodyFit(idMerchant) {
+    let stringQuery = `SELECT ID, DESCRIPTION FROM MERCHANT_BODY_FIT WHERE ID_MERCHANT = ${idMerchant}`;
+    return new Promise(function (resolve, reject) {
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
+
 
 function getPlacements() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM PLACEMENT";
@@ -572,19 +613,21 @@ function savePicture(picture, idProuct, isMain, pictNum) {
   });
 }
 //TODO MG: Que eran esos 1
-function saveProduct(prod, idSizeCurve) {
+function saveProduct(prod, prodNumber) {
   return new Promise(function (resolve, reject) {
     //let shipping = ; //TODO MG: ?? que es el 3?
+    let idRise = prod.idRise === undefined ? null : prod.idRise;
     let stringQuery = `INSERT INTO PROD (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
                        ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON, SHIPPING_DATE, ID_COUNTRY, ID_SHIPPING, 
-                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_DEPARTMENT, ID_MERCHANT_BRAND, 
-                       YEAR, PROYECTA, ID_CONCEPT) 
+                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
+                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER) 
                        VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
                        1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,1,${prod.idSeason},
                        STR_TO_DATE(${getFormattedDate(prod.shippingDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
-                       ${prod.idDepartment},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept})`;//order
+                       ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
+                       ${prod.idBodyFit}, ${idRise}, ${prodNumber})`;//order
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -594,6 +637,26 @@ function saveProduct(prod, idSizeCurve) {
   });
 }
 
+function getProductNumber(idSeason){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT
+        CASE WHEN COUNT(*) > 1
+        THEN (SELECT MAX(NUMBER) + 1 FROM prod WHERE ID_SEASON = ${idSeason})
+        ELSE
+        1
+        END AS number
+        FROM prod
+        WHERE ID_SEASON = ${idSeason}`;//order
+        console.log(stringQuery)
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows[0].number);
+        });
+      });
+}
+
 function getMerchantBrands(idMerchant){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, NAME, CODE, ID_MERCHANT FROM MERCHANT_BRAND WHERE ID_MERCHANT = ${idMerchant}`;//order
@@ -601,6 +664,7 @@ function getMerchantBrands(idMerchant){
           if (err) {
             return reject(err);
           }
+          console.log(rows)
           resolve(rows);
         });
       });
@@ -646,6 +710,20 @@ function saveComboAvio(idAvio, idColor, idProduct) {
     });
   });
 }
+
+
+function getMerchantRise(idMerchant) {
+    return new Promise(function (resolve, reject) {
+      let stringQuery = `SELECT ID, DESCRIPTION FROM RISE WHERE ID_MERCHANT = ${idMerchant}`;
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+  
+        resolve(rows);
+      });
+    });
+  }
 
 function getIdPrint(idPrint) {
   return new Promise(function (resolve, reject) {
@@ -796,12 +874,25 @@ function getAvio(idAvio) {
   });
 }
 
+function getTipology(idTipology){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, DESCRIPTION FROM TIPOLOGY WHERE ID = ${idTipology}`;
+        console.log(stringQuery)
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
+
 function saveCombo(data) {}
 
 module.exports.getMerchant = getMerchant;
 module.exports.getMerchantSeason = getMerchantSeason;
 module.exports.getMerchantDepartment = getMerchantDepartment;
-module.exports.getMerchantDepartments = getMerchantDepartments;
+module.exports.getMerchantManagmentUnits = getMerchantManagmentUnits;
 module.exports.getMerchantSeasons = getMerchantSeasons;
 module.exports.getMerchantSuppliers = getMerchantSuppliers;
 module.exports.getMerchantDesigners = getMerchantDesigners;
@@ -836,3 +927,9 @@ module.exports.saveNewFabricInternal = saveNewFabricInternal;
 module.exports.getFabricComposition = getFabricComposition;
 module.exports.getMerchantBrands = getMerchantBrands;
 module.exports.getMerchantConcepts = getMerchantConcepts;
+module.exports.getMerchantIndustries = getMerchantIndustries;
+module.exports.getMerchantLines = getMerchantLines;
+module.exports.getMerchantBodyFit = getMerchantBodyFit;
+module.exports.getMerchantRise = getMerchantRise;
+module.exports.getTipology = getTipology;
+module.exports.getProductNumber = getProductNumber;
