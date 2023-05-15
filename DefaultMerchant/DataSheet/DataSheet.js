@@ -374,6 +374,7 @@ function validateData(data) {
   validateConcept(data.idConcept);
   validateIdLine(data.idLine);
   validateIdBodyFit(data.idBodyFit);
+  validateExtendedSize(data.extendedSize)
 
 }
 function validateConcept(idConcept){
@@ -381,6 +382,13 @@ function validateConcept(idConcept){
     throw new Error("Debe ingresar un concepto.");
   }else if(idConcept < 1){
     throw new Error("Concepto invalido.");
+  }
+}
+function validateExtendedSize(idExtendedSize){
+  if(idExtendedSize === undefined){
+    throw new Error("Debe ingresar si es un talle mayor a 22XL.");
+  }else if(idExtendedSize !== 1 && idExtendedSize !== 0){
+    throw new Error("Extended size invalido.");
   }
 }
 
