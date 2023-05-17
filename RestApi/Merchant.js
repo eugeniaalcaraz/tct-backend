@@ -273,4 +273,18 @@ router.route("/getMerchantRise/:IdMerchant").get((req, res) => {
             res.send(err);
         });
 });
+
+router.route("/getMerchantShoeMaterials/:IdMerchant").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantShoeMaterials(req.params.IdMerchant)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 module.exports = router;

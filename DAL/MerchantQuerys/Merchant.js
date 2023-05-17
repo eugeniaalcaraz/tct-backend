@@ -442,6 +442,19 @@ function insertFabric(description, weight, idMerchant) {
   });
 }
 
+function insertShoeMaterialProd(idShoeMaterial, idProd) {
+    return new Promise(function (resolve, reject) {
+      let stringQuery = `insert into SHOE_MATERIAL_PROD (ID_SHOE_MATERIAL, ID_PROD) 
+                          values ('${idShoeMaterial}',${idProd})`;
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows.insertId);
+      });
+    });
+  }
+
 function getStringIds(fabric) {
   let str = "";
   fabric.composition.forEach((element) => {
@@ -673,6 +686,18 @@ function getMerchantBrands(idMerchant){
 function getMerchantConcepts(idMerchant){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, DESCRIPTION FROM CONCEPT WHERE ID_MERCHANT = ${idMerchant}`;//order
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
+
+function getMerchantShoeMaterials(idMerchant){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, DESCRIPTION FROM SHOE_MATERIAL WHERE ID_MERCHANT = ${idMerchant}`;//order
         con.query(stringQuery, function (err, rows, fields) {
           if (err) {
             return reject(err);
@@ -933,3 +958,5 @@ module.exports.getMerchantBodyFit = getMerchantBodyFit;
 module.exports.getMerchantRise = getMerchantRise;
 module.exports.getTipology = getTipology;
 module.exports.getProductNumber = getProductNumber;
+module.exports.getMerchantShoeMaterials = getMerchantShoeMaterials;
+module.exports.insertShoeMaterialProd = insertShoeMaterialProd;

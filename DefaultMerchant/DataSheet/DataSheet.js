@@ -29,7 +29,7 @@ module.exports = class ImpactaDataSheet {
         } else {
           try {//Valido los datos de los combos - podemos sacarlo para mayor eficiencia
             validateData(data);
-            if(data.idRise !== undefined){
+            if(data.idRise !== 0){
               await validateIdRise(data.idTipology);
             }
             await findCountry(data.idCountry);
@@ -47,6 +47,15 @@ module.exports = class ImpactaDataSheet {
         let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
         idProduct = await saveProduct(data, prodNumber);
         let savedFabrics = await saveFabrics(data);
+        let tipologyName = await merchantRepository.getTipology(data.idTipology);
+        if(data.idShoeMaterial > 0){
+          if(tipologyName[0].DESCRIPTION  !== "Zapato"){
+            reject("Si se ingreso un material de zapatos la tipología debe corresponder a zapatos");
+          }else{
+            merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
+          }
+        }
+
         //let idCombo = await saveCombo(idProduct, data.quantity);
         //await savePictures(data, idProduct);
         
@@ -67,6 +76,7 @@ module.exports = class ImpactaDataSheet {
       });
     } catch (exception) {
       return new Promise(function (resolve, reject) {
+        console.log("ppppppppppppp")
         reject(exception.message);
       });
     }
@@ -374,8 +384,14 @@ function validateData(data) {
   validateConcept(data.idConcept);
   validateIdLine(data.idLine);
   validateIdBodyFit(data.idBodyFit);
-  validateExtendedSize(data.extendedSize)
+  validateExtendedSize(data.extendedSize);
+  validateIdShoeMateria(data.idShoeMaterial)
 
+}
+function validateIdShoeMateria(idShoeMaterial){
+  if(idShoeMaterial === undefined){
+    throw new Error("Debe ingresar un material de zapato (0 en caso de que no tenga).");
+  }
 }
 function validateConcept(idConcept){
   if(idConcept === undefined){

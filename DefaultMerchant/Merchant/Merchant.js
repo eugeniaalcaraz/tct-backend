@@ -188,6 +188,16 @@ module.exports = class ImpactaMerchant {
             });
        });
     }
+    getMerchantShoeMaterials(idMerchant){
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getMerchantShoeMaterials(idMerchant).then(result => {
+                resolve(result);
+            }).catch(err => {
+                reject("Error - Whoops algo salió mal");
+            });
+       });
+    }
+
 
     getFabrics(idMerchant){
         var result = [];
