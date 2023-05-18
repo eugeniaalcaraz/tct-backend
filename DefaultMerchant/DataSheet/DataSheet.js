@@ -98,7 +98,8 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
         fab.printDescription,
         fab.colorCount,
         fab.placement,
-        idProduct
+        idProduct,
+        fab.consumption
       )
     );
     Promise.all(fabricCombo).then(async (results) => {
@@ -218,6 +219,7 @@ async function saveFabrics(data) {
                   idPrint: element.idPrint,
                   printDescription: element.printDescription,
                   colorCount: element.colorCount,
+                  consumption: element.consumption
                 });
               }
             })
@@ -240,6 +242,7 @@ async function saveFabrics(data) {
                 idPrint: element.idPrint,
                 printDescription: element.printDescription,
                 colorCount: element.colorCount,
+                consumption: element.consumption
               });
             }
           })
@@ -363,7 +366,8 @@ async function findShippingType(idShippingType) {
 //idCountryDestination
 function validateData(data) {
   validateMerchantBrand(data.idMerchantBrand);
-  validateShippingDate(data.shippingDate);
+  validateShippingDate(data.entryDate);
+  validateShippingDate(data.warehouseEntryDate);
   validateName(data.name);
   validateQuantity(data.quantity);
   validateDetail(data.detail);

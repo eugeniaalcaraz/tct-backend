@@ -32,7 +32,7 @@ function getSeasons({ idMerchant, idDepartment }) {
 
 function getBalanceData({ idMerchant, idSeason }) {
     let sqlString =
-        "SELECT prod.ID IdProduct, prod.ID_INSPECTION IdInspection, prod.SHIPPING_DATE ShippingDate, DATEDIFF(now(),prod.SHIPPING_DATE) DaysBeforeShipping FROM SEASON season,PRODUCT prod WHERE season.ID = prod.ID_SEASON AND prod.ID_MERCHANT = " +
+        "SELECT prod.ID IdProduct, prod.ID_INSPECTION IdInspection, prod.ENTRY_DATE ShippingDate, DATEDIFF(now(),prod.ENTRY_DATE) DaysBeforeShipping FROM SEASON season,PRODUCT prod WHERE season.ID = prod.ID_SEASON AND prod.ID_MERCHANT = " +
         idMerchant +
         " and prod.ID_SEASON = " +
         idSeason;
@@ -82,13 +82,13 @@ function getBalanceDatesConfig({ idMerchant }) {
 
 function getShippingDates({ idMerchant, idSeason, month, year }) {
     let stringQuery =
-        "SELECT p.SHIPPING_DATE ShippingDate, p.product_order OrderNumber FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
+        "SELECT p.ENTRY_DATE ShippingDate, p.product_order OrderNumber FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
         idSeason +
         " AND p.ID_MERCHANT = " +
         idMerchant +
-        " AND MONTH(p.SHIPPING_DATE) = " +
+        " AND MONTH(p.ENTRY_DATE) = " +
         month +
-        " AND YEAR(p.SHIPPING_DATE) = " +
+        " AND YEAR(p.ENTRY_DATE) = " +
         year;
 
     return new Promise(function (resolve, reject) {

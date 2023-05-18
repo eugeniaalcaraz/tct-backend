@@ -179,7 +179,7 @@ function getFibers() {
 }
 
 function getColors() {
-  let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM COLOR";
+  let stringQuery = "SELECT ID Id, DESCRIPTION Description, CODE Code, RGB  FROM COLOR";
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -631,16 +631,16 @@ function saveProduct(prod, prodNumber) {
     //let shipping = ; //TODO MG: ?? que es el 3?
     let idRise = prod.idRise === undefined ? null : prod.idRise;
     let stringQuery = `INSERT INTO PROD (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
-                       ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON, SHIPPING_DATE, ID_COUNTRY, ID_SHIPPING, 
+                       ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
                        ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
-                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE) 
+                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE) 
                        VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
                        1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,1,${prod.idSeason},
-                       STR_TO_DATE(${getFormattedDate(prod.shippingDate)}, '%d,%m,%Y'),${prod.idCountry},
+                       STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'), STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
-                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize})`;//order
+                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'))`;//order
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -784,7 +784,8 @@ function saveComboFabric(
   printDescription,
   colorCount,
   placement,
-  idProduct
+  idProduct,
+  consumption
 ) {
   return new Promise(function (resolve, reject) {
     savePrint(printDescription, colorCount).then((result) => {
@@ -793,7 +794,8 @@ function saveComboFabric(
         idColor,
         idPrint,
         placement,
-        idProduct
+        idProduct, 
+        consumption
       ).then((result) => {
         resolve(result);
       });
@@ -806,14 +808,15 @@ function insertComboFabric(
   idColor,
   idPrint,
   placement,
-  idProduct
+  idProduct,
+  consumption
 ) {
   let shortDate = new Date().toLocaleDateString();
   return new Promise(function (resolve, reject) {
     let onCreateStatus = 1;
     let stringQuery = `INSERT INTO combo_fabric (ID_PRODUCT, ID_FABRIC, ID_COLOR, ID_PRINT, ID_PLACEMENT, ID_STATUS_COLOR,
-                       ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT) values (${idProduct},${idFabric},${idColor},
-                        ${idPrint},${placement},${onCreateStatus},${onCreateStatus},${shortDate},${shortDate})`;
+                       ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT, CONSUMPTION) values (${idProduct},${idFabric},
+                        ${idColor},${idPrint},${placement},${onCreateStatus},${onCreateStatus},${shortDate},${shortDate}, ${consumption})`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
