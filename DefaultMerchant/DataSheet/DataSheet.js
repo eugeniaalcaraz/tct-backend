@@ -2,7 +2,11 @@ var ProductDTO = require("./ProductDTO");
 var merchantRepository = require("../../DAL/MerchantQuerys/Merchant");
 var pako = require('pako');
 
-
+const sizeCurveEnum = {
+  shoe: 1,
+  clothes: 2,
+  denim: 3
+};
 
 module.exports = class ImpactaDataSheet {
   constructor() {}
@@ -55,41 +59,29 @@ module.exports = class ImpactaDataSheet {
             merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
           }
         }
-
-        //let idCombo = await saveCombo(idProduct, data.quantity);
-        //await savePictures(data, idProduct);
-        
-        // Promise.all(manageFabrics)
-        //   .then(async (results) => {
-        // savedFabrics.map((fabric) =>
-        // handleCombos(fabric, data, idCombo, idProduct)
-        // );
         await handleFabricCombo(savedFabrics, idProduct, data);
-       
-        //   })
-        //   .catch((err) => {
-        //     throw new Error(
-        //       "Error - Algo salio mal al asociar las telas con el producto"
-        //     );
-        //   });
         resolve(true);
       });
     } catch (exception) {
       return new Promise(function (resolve, reject) {
-        console.log("ppppppppppppp")
         reject(exception.message);
       });
     }
+  }
+
+
+  async updateProduct(data){
+    console.log("aaaaaaaaaaaaaa")
+    return new Promise(function(resolve, reject){
+      merchantRepository.updateProduct(data).then(result => {
+          resolve(result); 
+      });
+  });
   }
 };
 
 
 async function handleFabricCombo(savedFabrics, idProduct, data) {
-  // let aviosPr = data.avios.map((avio) =>
-  //   merchantRepository.getAvio(avio.idAvio)
-  // );
-  // Promise.all(aviosPr).then(async (results) => {
-
     let fabricCombo = savedFabrics.map((fab, i) =>
       merchantRepository.saveComboFabric(
         fab.idFabric,
@@ -389,8 +381,18 @@ function validateData(data) {
   validateIdLine(data.idLine);
   validateIdBodyFit(data.idBodyFit);
   validateExtendedSize(data.extendedSize);
-  validateIdShoeMateria(data.idShoeMaterial)
+  validateIdShoeMateria(data.idShoeMaterial);
+  validateSizeCurveData(data);
 
+}
+function validateSizeCurveData(data){
+  const sizeCurveTypes = Object.values(sizeCurveEnum);
+  if(sizeCurveTypes.map(String).includes(data.sizeCurveType)){
+    throw new Error("Tipo de curva de talles invalida.");
+  }
+  if(data.idSizeCurve === undefined){
+    throw new Error("Debe ingresar un talle.");
+  }
 }
 function validateIdShoeMateria(idShoeMaterial){
   if(idShoeMaterial === undefined){
@@ -637,4 +639,6 @@ function validateCosts(cost, costInStore) {
     }
 
   }
+
 }
+

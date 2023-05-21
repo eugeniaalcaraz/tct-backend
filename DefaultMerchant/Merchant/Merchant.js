@@ -253,7 +253,17 @@ module.exports = class ImpactaMerchant {
         return new Promise(function(resolve, reject){
             MerchantRepository.getMerchantConcepts(idMerchant).then(result => {
                 resolve(result); 
-            })
-        })
+            });
+        });
+    }
+    getMerchantSizeCurves(){
+        return new Promise(async function(resolve, reject){
+            const result = [];
+            result.push({ shoes: await MerchantRepository.getMerchantShoesSizeCurve() });
+            result.push({ denim: await MerchantRepository.getMerchantDenimSizeCurve() });
+            result.push({ clothes: await MerchantRepository.getMerchantClothingSizeCurve()});
+            resolve(result);
+
+        });
     }
 };

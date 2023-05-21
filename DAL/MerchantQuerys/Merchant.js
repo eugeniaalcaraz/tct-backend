@@ -631,16 +631,17 @@ function saveProduct(prod, prodNumber) {
     //let shipping = ; //TODO MG: ?? que es el 3?
     let idRise = prod.idRise === undefined ? null : prod.idRise;
     let stringQuery = `INSERT INTO PROD (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
-                       ID_MEASUREMENT_TABLE, ID_SIZE_CURVE, ID_CARE_LABEL, ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
+                       ID_MEASUREMENT_TABLE, ID_CARE_LABEL, ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
                        ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
-                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE) 
-                       VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
-                       1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,1,${prod.idSeason},
+                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE, ID_SIZE_CURVE,
+                       SIZE_CURVE_TYPE) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
+                       1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,${prod.idSeason},
                        STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'), STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
-                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'))`;//order
+                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'),
+                       ${prod.idSizeCurve}, ${prod.sizeCurveType})`;//order
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -649,7 +650,28 @@ function saveProduct(prod, prodNumber) {
     });
   });
 }
+//TODO MG: Que eran esos 1
+function updateProduct(prod, prodNumber) {
+    return new Promise(function (resolve, reject) {
+      let stringQuery = 'UPDATE prod SET ';
 
+        if (prod.name !== undefined) {
+            stringQuery += `name = '${prod.name}', `;
+        }
+
+        stringQuery = stringQuery.slice(0, -2); // Remove the trailing comma and space
+
+        stringQuery += ` WHERE ID = ${prod.id}`;
+        console.log(stringQuery);
+        con.query(stringQuery, function (err, rows, fields) {
+            if (err) {
+              return reject(err);
+            }
+            resolve(rows.affectedRows === 1);
+          });
+        });
+    
+  }
 function getProductNumber(idSeason){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT
@@ -915,6 +937,42 @@ function getTipology(idTipology){
       });
 }
 
+function getMerchantClothingSizeCurve(){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_CLOTHES`;
+        console.log(stringQuery)
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
+function getMerchantDenimSizeCurve(){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_DENIM`;
+        console.log(stringQuery)
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
+function getMerchantShoesSizeCurve(){
+    return new Promise(function (resolve, reject) {
+        let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_SHOES`;
+        console.log(stringQuery)
+        con.query(stringQuery, function (err, rows, fields) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(rows);
+        });
+      });
+}
 function saveCombo(data) {}
 
 module.exports.getMerchant = getMerchant;
@@ -963,3 +1021,7 @@ module.exports.getTipology = getTipology;
 module.exports.getProductNumber = getProductNumber;
 module.exports.getMerchantShoeMaterials = getMerchantShoeMaterials;
 module.exports.insertShoeMaterialProd = insertShoeMaterialProd;
+module.exports.getMerchantClothingSizeCurve = getMerchantClothingSizeCurve;
+module.exports.getMerchantDenimSizeCurve = getMerchantDenimSizeCurve;
+module.exports.getMerchantShoesSizeCurve = getMerchantShoesSizeCurve;
+module.exports.updateProduct = updateProduct;

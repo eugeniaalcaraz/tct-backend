@@ -18,6 +18,20 @@ router.route("/saveProduct").post((req, res) => {
             res.send(err);
         });
 });
+router.route("/updateProduct").post((req, res) => {
+    const body = req.body;
+    currentBrand = new DynamicClass("ImpactaDataSheet");
+    currentBrand
+        .updateProduct(body)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 
 module.exports = router;
 

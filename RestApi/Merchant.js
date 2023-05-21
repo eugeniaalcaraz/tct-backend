@@ -287,4 +287,18 @@ router.route("/getMerchantShoeMaterials/:IdMerchant").get((req, res) => {
             res.send(err);
         });
 });
+
+router.route("/getMerchantSizeCurves").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getMerchantSizeCurves()
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 module.exports = router;
