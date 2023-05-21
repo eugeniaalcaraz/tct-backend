@@ -654,10 +654,98 @@ function saveProduct(prod, prodNumber) {
 function updateProduct(prod, prodNumber) {
     return new Promise(function (resolve, reject) {
       let stringQuery = 'UPDATE prod SET ';
-
         if (prod.name !== undefined) {
-            stringQuery += `name = '${prod.name}', `;
+            stringQuery += `NAME = '${prod.name}', `;
         }
+        if (prod.quantity !== undefined) {
+            stringQuery += `QUANTITY = ${prod.quantity}, `;
+        }
+        if (prod.weight !== undefined) {
+            stringQuery += `WEIGHT = ${prod.weight}, `;
+        }
+        if (prod.detail !== undefined) {
+            stringQuery += `DETAIL = ${prod.detail}, `;
+        }
+        if (prod.idInspection !== undefined) {
+            stringQuery += `ID_INSPECTION = ${prod.idInspection}, `;
+        }
+        if (prod.idCollection !== undefined) {
+            stringQuery += `ID_COLLECTION = ${prod.idCollection}, `;
+        }
+        if (prod.idTypology !== undefined) {
+            stringQuery += `ID_TIPOLOGY = ${prod.idTypology}, `;
+        }
+        if (prod.idSeason !== undefined) {
+            stringQuery += `ID_SEASON = ${prod.idSeason}, `;
+        }
+        if (prod.entryDate !== undefined) {
+            stringQuery += `ENTRY_DATE = ${prod.entryDate}, `;
+        }
+        if (prod.idCountry !== undefined) {
+            stringQuery += `ID_COUNTRY = ${prod.idCountry}, `;
+        }
+        if (prod.idShipping !== undefined) {
+            stringQuery += `ID_SHIPPING = ${prod.idShipping}, `;
+        }
+        if (prod.idDesigner !== undefined) {
+            stringQuery += `ID_DESIGNER = ${prod.idDesigner}, `;
+        }
+        if (prod.idStatus !== undefined) {
+            stringQuery += `ID_STATUS = ${prod.idStatus}, `;
+        }
+        if (prod.cost !== undefined) {
+            stringQuery += `COST = ${prod.cost}, `;
+        }
+        if (prod.costInStore !== undefined) {
+            stringQuery += `COST_IN_STORE = ${prod.costInStore}, `;
+        }
+        if (prod.idCountryDestination !== undefined) {
+            stringQuery += `ID_COUNTRY_DESTINATION = ${prod.idCountryDestination}, `;
+        }
+        if (prod.idSupplier !== undefined) {
+            stringQuery += `ID_SUPPLIER = ${prod.idSupplier}, `;
+        }
+        if (prod.idIndustry !== undefined) {
+            stringQuery += `ID_INDUSTRY = ${prod.idIndustry}, `;
+        }
+        if (prod.idMerchantBrand !== undefined) {
+            stringQuery += `ID_MERCHANT_BRAND = ${prod.idMerchantBrand}, `;
+        }
+        if (prod.year !== undefined) {
+            stringQuery += `YEAR = ${prod.year}, `;
+        }
+        if (prod.proyecta !== undefined) {
+            stringQuery += `PROYECTA = ${prod.proyecta}, `;
+        }
+        if (prod.idConcept !== undefined) {
+            stringQuery += `ID_CONCEPT = ${prod.idConcept}, `;
+        }
+        if (prod.idLine !== undefined) {
+            stringQuery += `ID_LINE = ${prod.idLine}, `;
+        }
+        if (prod.idBodyFit !== undefined) {
+            stringQuery += `ID_BODY_FIT = ${prod.idBodyFit}, `;
+        }
+        if (prod.idRise !== undefined) {
+            stringQuery += `ID_RISE = ${prod.idRise}, `;
+        }
+        if (prod.number !== undefined) {
+            stringQuery += `NUMBER = ${prod.number}, `;
+        }
+        if (prod.extendedSize !== undefined) {
+            stringQuery += `EXTENDED_SIZE = ${prod.extendedSize}, `;
+        }
+        if (prod.warehouseEntryDate !== undefined) {
+            stringQuery += `WAREHOUSE_ENTRY_DATE = ${prod.warehouseEntryDate}, `;
+        }
+        if (prod.idSizeCurve !== undefined) {
+            stringQuery += `ID_SIZE_CURVE = ${prod.idSizeCurve}, `;
+        }
+        if (prod.sizeCurveType !== undefined) {
+            stringQuery += `SIZE_CURVE_TYPE = ${prod.sizeCurveType}, `;
+        }
+
+
 
         stringQuery = stringQuery.slice(0, -2); // Remove the trailing comma and space
 
@@ -847,57 +935,6 @@ function insertComboFabric(
     });
   });
 }
-// function saveComboProduct(idProduct, quantity) {
-//     console.log("insert combo product")
-//   return new Promise(function (resolve, reject) {
-//     getComboId(idProduct).then((resultCombo) => {
-//       //Este está OK?
-//       if (resultCombo.length > 0) {
-//         var lastComboIdResult = resultCombo[0].id;
-//         if (lastComboIdResult === null) {
-//           lastComboIdResult = 1;
-//         } else {
-//           lastComboIdResult = parseInt(lastComboIdResult) + 1;
-//         }
-//         let stringQuery = `INSERT INTO product_combo (ID_PRODUCT, ID_COMBO, QUANTITY) VALUES (${idProduct},${lastComboIdResult},${quantity})`;
-//         con.query(stringQuery, function (err, rows, fields) {
-//           if (err) {
-//             return reject(err);
-//           }
-//           resolve(lastComboIdResult);
-//         });
-//       }
-//     });
-//   });
-// }
-
-// function getComboId(idProduct) {
-//   return new Promise(function (resolve, reject) {
-//     let stringQuery = `SELECT MAX(ID_COMBO) as id FROM PRODUCT_COMBO WHERE ID_PRODUCT = ${idProduct}`;
-//     con.query(stringQuery, function (err, rows, fields) {
-//       if (err) {
-//         return reject(err);
-//       }
-//       resolve(rows);
-//     });
-//   });
-// }
-
-// function saveProductFabric(fabric, idProduct) {
-//     console.log("alo p fabric")
-//   return new Promise(function (resolve, reject) {
-//     let stringQuery = `insert into product_fabric values (${idProduct},${fabric.idFabric},${fabric.placement},
-//                      ${fabric.idColor},${fabric.idPrint == undefined ? 0 : fabric.idPrint})`;
-//     con.query(stringQuery, function (err, rows, fields) {
-//       if (err) {
-//         console.log("Error guardando prodyuct fabric: " + err)
-//         return reject(err);
-//       }
-//         console.log(rows)
-//       resolve(rows);
-//     });
-//   });
-// }
 
 function getFormattedDate(strDate) {
   let date = new Date(strDate);
