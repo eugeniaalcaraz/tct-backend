@@ -50,7 +50,7 @@ async function saveNewProduct(data) {
         validateData(data);
         await findCountry(data.idCountry);
         await findShippingType(data.idShipping);
-        await findTipology(data.idTipology);
+        await findTIPOLOGY(data.idTIPOLOGY);
         await findStatus(data.idModeling);
         await findCollection(data.idCollection, data.idMerchant);
         await findDesigner(data.idDesigner, data.idMerchant);

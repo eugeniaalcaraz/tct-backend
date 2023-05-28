@@ -15,7 +15,7 @@ function getSeasons({ idMerchant, idDepartment }) {
             "SELECT season.NAME Name," +
                 "season.START_DATE StartDate, " +
                 "season.END_DATE EndDate " +
-                "FROM SEASON season " +
+                "FROM SEASON SEASON " +
                 "INNER JOIN SEASON_DEPARTMENT seasonDepartment ON season.ID = seasonDepartment.ID_SEASON " +
                 "WHERE ID_MERCHANT = " +
                 idMerchant +
@@ -32,7 +32,7 @@ function getSeasons({ idMerchant, idDepartment }) {
 
 function getBalanceData({ idMerchant, idSeason }) {
     let sqlString =
-        "SELECT prod.ID IdProduct, prod.ID_INSPECTION IdInspection, prod.ENTRY_DATE ShippingDate, DATEDIFF(now(),prod.ENTRY_DATE) DaysBeforeShipping FROM SEASON season,PRODUCT prod WHERE season.ID = prod.ID_SEASON AND prod.ID_MERCHANT = " +
+        "SELECT prod.ID IdProduct, prod.ID_INSPECTION IdInspection, prod.ENTRY_DATE ShippingDate, DATEDIFF(now(),prod.ENTRY_DATE) DaysBeforeShipping FROM SEASON season,PRODUCT PRODUCT WHERE season.ID = prod.ID_SEASON AND prod.ID_MERCHANT = " +
         idMerchant +
         " and prod.ID_SEASON = " +
         idSeason;
@@ -137,7 +137,7 @@ function getDataForMarginCalculations(idMerchant, idSeason) {
 
 function getTopProductsWithStatus(idMerchant, idSeason, idStatus, limit) {
     let stringQuery =
-        "select prod.name Name from product prod where prod.ID_MERCHANT = " +
+        "select prod.name Name from product PRODUCTwhere prod.ID_MERCHANT = " +
         idMerchant +
         " AND ID_STATUS = 2 AND ID_SEASON = " +
         idSeason +
@@ -174,10 +174,10 @@ function getSKUsAndPieces(idMerchant, idSeason, idCategory) {
       merchant m, 
       product p, 
       product_sku ps,
-			tipology t
+			TIPOLOGY t
     WHERE
 			t.ID_CATEGORY = c.ID AND
-      t.id = p.id_tipology AND
+      t.id = p.id_TIPOLOGY AND
       m.ID = ${idMerchant} AND
       s.ID = ${idSeason} AND
       c.ID = ${idCategory} AND
@@ -220,13 +220,13 @@ function getAllSKUsAndPieces(idMerchant, idSeason) {
         merchant m, 
         product p, 
         product_sku ps, 
-        tipology t
+        TIPOLOGY t
                                   
       WHERE
         m.ID = ${idMerchant} AND
         s.ID = ${idSeason} AND
         p.ID_SEASON = s.ID AND
-        p.ID_tipology = t.id AND
+        p.ID_TIPOLOGY = t.id AND
                                   t.ID_CATEGORY = c.id AND
         m.ID = c.ID_MERCHANT AND
         ps.ID_PRODUCT = p.ID
@@ -250,7 +250,7 @@ function getPendantAvios(idSeason) {
         count(ca.id_product) cantidadSinAprobar
         FROM
         product p,
-        combo_avio ca,
+        COMBO_AVIO ca,
         season ss
         where
         p.ID = ca.id_product and
@@ -308,7 +308,7 @@ function getTotalRequestedAvios(idSeason) {
         count(ca.id_product) total
         FROM
         product p,
-        combo_avio ca,
+        COMBO_AVIO ca,
         season ss
         where
         p.ID = ca.id_product and

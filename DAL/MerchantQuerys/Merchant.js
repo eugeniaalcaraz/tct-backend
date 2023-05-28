@@ -42,7 +42,7 @@ function startTransaction() {
 
 function getMerchantSeason({ idMerchant, idSeason }) {
   let stringQuery =
-    "SELECT * FROM merchant m INNER JOIN season s on m.ID = s.ID_MERCHANT where s.ID = " +
+    "SELECT * FROM merchant m INNER JOIN SEASON s on m.ID = s.ID_MERCHANT where s.ID = " +
     idSeason +
     " and s.ID_MERCHANT = " +
     idMerchant;
@@ -58,7 +58,7 @@ function getMerchantSeason({ idMerchant, idSeason }) {
 
 function getMerchantDepartment({ idMerchant, idDepartment }) {
   let stringQuery =
-    "select * from season s inner join season_department sd on s.id = sd.ID_SEASON where s.ID_MERCHANT = " +
+    "select * from SEASON s inner join SEASON_DEPARTMENT sd on s.id = sd.ID_SEASON where s.ID_MERCHANT = " +
     idMerchant +
     " and sd.id_department = " +
     idDepartment;
@@ -254,7 +254,7 @@ function getShippingTypes() {
 
 function findCollection(idCollection, idMerchant) {
   let stringQuery =
-    "select * from season s inner join merchant m on s.id_merchant = m.id inner join collection c on c.ID_SEASON = s.id where c.ID = " +
+    "select * from SEASON s inner join MERCHANT m on s.id_merchant = m.id inner join COLLECTION c on c.ID_SEASON = s.id where c.ID = " +
     idCollection +
     " and m.ID = " +
     idMerchant;
@@ -269,7 +269,7 @@ function findCollection(idCollection, idMerchant) {
 }
 
 function findShippingType(idShippingType) {
-  let stringQuery = "select * from shipping_type where id = " + idShippingType;
+  let stringQuery = "select * from SHIPPING_TYPE where id = " + idShippingType;
 
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
@@ -282,7 +282,7 @@ function findShippingType(idShippingType) {
 }
 
 function findCountry(idCountry) {
-  let stringQuery = "select * from country where id = " + idCountry;
+  let stringQuery = "select * from COUNTRY where id = " + idCountry;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -293,8 +293,8 @@ function findCountry(idCountry) {
   });
 }
 
-function findTipology(idTipology) {
-  let stringQuery = "select * from tipology where id = " + idTipology;
+function findTIPOLOGY(idTIPOLOGY) {
+  let stringQuery = "select * from TIPOLOGY where id = " + idTIPOLOGY;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -305,7 +305,7 @@ function findTipology(idTipology) {
   });
 }
 function findStatus(idStatus) {
-  let stringQuery = "select * from status where id = " + idStatus;
+  let stringQuery = "select * from STATUS where id = " + idStatus;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -317,7 +317,7 @@ function findStatus(idStatus) {
 }
 
 function findShippingType(idShippingType) {
-  let stringQuery = "select * from shipping_type where id = " + idShippingType;
+  let stringQuery = "select * from SHIPPING_TYPE where id = " + idShippingType;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -329,7 +329,7 @@ function findShippingType(idShippingType) {
 }
 function findFabric(fabricIds, idMerchant) {
   let stringQuery =
-    "SELECT id_fabric FROM percentage_fiber pf inner join fabric f on  pf.id_fabric = f.id where id_fiber in ( " +
+    "SELECT id_fabric FROM PERCENTAGE_FIBER pf inner join FABRIC f on  pf.id_fabric = f.id where id_fiber in ( " +
     fabricIds +
     ") and f.id_merchant = " +
     idMerchant +
@@ -399,7 +399,7 @@ function findFibers(fiberIds) {
   });
 }
 function getFabric(description, weight) {
-  let stringQuery = `SELECT * FROM fabric where description = '${description}' and weight = ${weight}`;
+  let stringQuery = `SELECT * FROM FABRIC WHERE DESCRIPTION = '${description}' AND WEIGHT = ${weight}`;
 
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
@@ -431,8 +431,8 @@ function saveNewFabric(idMerchant, description, weight) {
 
 function insertFabric(description, weight, idMerchant) {
   return new Promise(function (resolve, reject) {
-    let stringQuery = `insert into fabric (DESCRIPTION,WEIGHT, ID_MERCHANT) 
-                        values ('${description}',${weight},${idMerchant})`;
+    let stringQuery = `INSERT INTO FABRIC (DESCRIPTION,WEIGHT, ID_MERCHANT) 
+                        VALUES ('${description}',${weight},${idMerchant})`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -444,7 +444,7 @@ function insertFabric(description, weight, idMerchant) {
 
 function insertShoeMaterialProd(idShoeMaterial, idProd) {
     return new Promise(function (resolve, reject) {
-      let stringQuery = `insert into SHOE_MATERIAL_PROD (ID_SHOE_MATERIAL, ID_PROD) 
+      let stringQuery = `insert into SHOE_MATERIAL_PROD (ID_SHOE_MATERIAL, ID_PRODUCT) 
                           values ('${idShoeMaterial}',${idProd})`;
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
@@ -575,7 +575,7 @@ async function saveFiberPercentage(fabric, idFabric) {
   });
 }
 function findDesigner(idDesigner, idMerchant) {
-  let stringQuery = `select * from designer where id = ${idDesigner} and id_merchant = ${idMerchant}`;
+  let stringQuery = `select * from DESIGNER where id = ${idDesigner} and id_merchant = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -604,7 +604,7 @@ function saveSizeCurve(sizeCurve, idMerchant) {
 
 async function saveFiberPercentager(idFiber, percentage, idFabric) {
   return new Promise(function (resolve, reject) {
-    let stringQuery = `insert into percentage_fiber values (${idFiber},${percentage},${idFabric})`;
+    let stringQuery = `insert into PERCENTAGE_FIBER values (${idFiber},${percentage},${idFabric})`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -630,12 +630,12 @@ function saveProduct(prod, prodNumber) {
   return new Promise(function (resolve, reject) {
     //let shipping = ; //TODO MG: ?? que es el 3?
     let idRise = prod.idRise === undefined ? null : prod.idRise;
-    let stringQuery = `INSERT INTO PROD (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
-                       ID_MEASUREMENT_TABLE, ID_CARE_LABEL, ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
+    let stringQuery = `INSERT INTO PRODUCT (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
+                       ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
                        ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
                        YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE, ID_SIZE_CURVE,
                        SIZE_CURVE_TYPE) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
-                       1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology} , 1 ,1,${prod.idSeason},
+                       1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology},${prod.idSeason},
                        STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'), STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
@@ -653,7 +653,7 @@ function saveProduct(prod, prodNumber) {
 //TODO MG: Que eran esos 1
 function updateProduct(prod, prodNumber) {
     return new Promise(function (resolve, reject) {
-      let stringQuery = 'UPDATE prod SET ';
+      let stringQuery = 'UPDATE PRODUCTSET ';
         if (prod.name !== undefined) {
             stringQuery += `NAME = '${prod.name}', `;
         }
@@ -764,11 +764,11 @@ function getProductNumber(idSeason){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT
         CASE WHEN COUNT(*) > 1
-        THEN (SELECT MAX(NUMBER) + 1 FROM prod WHERE ID_SEASON = ${idSeason})
+        THEN (SELECT MAX(NUMBER) + 1 FROM PRODUCT WHERE ID_SEASON = ${idSeason})
         ELSE
         1
         END AS number
-        FROM prod
+        FROM PRODUCT
         WHERE ID_SEASON = ${idSeason}`;//order
         console.log(stringQuery)
         con.query(stringQuery, function (err, rows, fields) {
@@ -829,12 +829,20 @@ function getProuct(idProduct) {
   });
 }
 
+function getFormmatedDate() {
+    let currentDate = new Date();
+    let year = currentDate.getFullYear();
+    let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    let day = String(currentDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`.toString();
+  }
 //TODO: MG Que es el 1
 function saveComboAvio(idAvio, idColor, idProduct) {
-  let shortDate = new Date().toLocaleDateString();
+
+    
   return new Promise(function (resolve, reject) {
-    let stringQuery = `INSERT INTO combo_avio (ID_AVIO, ID_COLOR, ID_PRODUCT, ID_STATUS,
-                        STATUS_DATE) values (${idAvio},${idColor},${idProduct}, 1,${shortDate})`;
+    let stringQuery = `INSERT INTO COMBO_AVIO (ID_AVIO, ID_COLOR, ID_PRODUCT, ID_STATUS,
+                        STATUS_DATE) VALUES (${idAvio},${idColor},${idProduct}, 1,'${getFormmatedDate()}')`;
 
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -913,6 +921,16 @@ function saveComboFabric(
   });
 }
 
+
+function getDateFormatted(){
+    let currentDate = new Date();
+    let year = currentDate.getFullYear();
+    let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    let day = String(currentDate.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 function insertComboFabric(
   idFabric,
   idColor,
@@ -921,13 +939,17 @@ function insertComboFabric(
   idProduct,
   consumption
 ) {
-  let shortDate = new Date().toLocaleDateString();
-  return new Promise(function (resolve, reject) {
-    let onCreateStatus = 1;
-    let stringQuery = `INSERT INTO combo_fabric (ID_PRODUCT, ID_FABRIC, ID_COLOR, ID_PRINT, ID_PLACEMENT, ID_STATUS_COLOR,
-                       ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT, CONSUMPTION) values (${idProduct},${idFabric},
-                        ${idColor},${idPrint},${placement},${onCreateStatus},${onCreateStatus},${shortDate},${shortDate}, ${consumption})`;
-    con.query(stringQuery, function (err, rows, fields) {
+    let currentDate = new Date();
+    let year = currentDate.getFullYear();
+    let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    let day = String(currentDate.getDate()).padStart(2, '0');
+    let shortDate = `${year}-${month}-${day}`.toString();
+
+    return new Promise(function (resolve, reject) {
+      let onCreateStatus = 1;
+      let stringQuery = `INSERT INTO COMBO_FABRIC (ID_PRODUCT, ID_FABRIC, ID_COLOR, ID_PRINT, ID_PLACEMENT, ID_STATUS_COLOR, ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT, CONSUMPTION) values (${idProduct}, ${idFabric}, ${idColor}, ${idPrint}, ${placement}, ${onCreateStatus}, ${onCreateStatus}, '${shortDate}', '${shortDate}', ${consumption})`;
+      
+      con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -963,12 +985,13 @@ function getAvio(idAvio) {
 
 function getTipology(idTipology){
     return new Promise(function (resolve, reject) {
-        let stringQuery = `SELECT ID, DESCRIPTION FROM TIPOLOGY WHERE ID = ${idTipology}`;
-        console.log(stringQuery)
+        let stringQuery = `SELECT ID, NAME FROM TIPOLOGY WHERE ID = ${idTipology}`;
+        console.log(stringQuery);
         con.query(stringQuery, function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
+          console.log(rows);
           resolve(rows);
         });
       });
@@ -1027,7 +1050,7 @@ module.exports.getShippingTypes = getShippingTypes;
 module.exports.findCollection = findCollection;
 module.exports.findShippingType = findShippingType;
 module.exports.findCountry = findCountry;
-module.exports.findTipology = findTipology;
+module.exports.findTIPOLOGY = findTIPOLOGY;
 module.exports.findStatus = findStatus;
 module.exports.saveSizeCurve = saveSizeCurve;
 module.exports.saveProduct = saveProduct;

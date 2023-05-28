@@ -162,7 +162,7 @@ function getGarmentTypes(idMerchant) {
                         id IdGarmentType, 
                         description Description
                     FROM
-                        tipology`;
+                        TIPOLOGY`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -180,7 +180,7 @@ function getProductsNames(idMerchant) {
                         id p.IdProduct,
                         name p.ProductName
                     FROM
-                        product p, merchant m
+                        PRODUCT p, merchant m
                     WHERE
                         p.id_merchant = m.id`;
 
@@ -256,7 +256,7 @@ function getWeight(idMerchant) {
     let sqlString = `SELECT DISTINCT
                         weight
                     FROM
-                        product`;
+                        PRODUCT`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -295,7 +295,7 @@ function getShippingTypes(idMerchant) {
                         id IdShippingType,
                         description Description
                     FROM
-                        shipping_type`;
+                        SHIPPING_TYPE`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -330,10 +330,10 @@ function getDepartments(idMerchant) {
 //DEPARTMENT
 function getTipologies(idMerchant) {
     let sqlString = `SELECT
-                          id IdTipology,
+                          id IdTIPOLOGY,
                           description Description
                       FROM
-                          tipology`;
+                      TIPOLOGY`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -386,8 +386,8 @@ function getAllProducts(idMerchant, idSeason) {
     f.DESCRIPTION calidad,
     st.DESCRIPTION estado
     FROM
-    product p,season s, department_merchant dm, tipology t, status st, 
-    product_picture pp,  merchant m, supplier_merchant sm, supplier supp, department d, designer des
+    PRODUCT p,season s, department_merchant dm, TIPOLOGY t, status st, 
+    product_picture pp,  merchant m, supplier_merchant sm, supplier supp, department d, DESIGNER des
     where p.ID_SEASON = s.ID
     and dm.ID_DEPARTMENT = d.ID
     AND p.ID_MERCHANT = dm.ID_MERCHANT
@@ -417,7 +417,7 @@ function getAllProductsWithFilters(
     idFabric,
     idDepartment,
     idSupplier,
-    idTipology,
+    idTIPOLOGY,
     idStatus,
     ProductName,
     ProductPrice,
@@ -429,32 +429,32 @@ function getAllProductsWithFilters(
     quantity
 ) {
     let sqlString = `SELECT
-  p.ID IdProduct,
-  p.NAME ProductoNombre,
-  p.QUANTITY Cantidad,
-  p.cost Costo,
-  p.cost_in_store Precio,
-  round(((p.cost_in_store/1.22 - p.cost)/(p.cost_in_store/1.22)*100), 2) Margin,
-  p.WEIGHT Peso,
-  pp.PATH Foto,
-  supp.NAME Proveedor,
-  d.DESCRIPTION Departamento,
-  t.DESCRIPTION Tipo,
-  MIN(f.DESCRIPTION) Calidad,
-  COUNT(f.DESCRIPTION) -1 CalidadesAdicionales,
-  st.DESCRIPTION Estado
-  FROM
-  product p
-          INNER JOIN product_fabric pf on p.id = pf.ID_PRODUCT
-          INNER JOIN fabric f on f.ID = pf.id_fabric 
-          INNER JOIN department d ON p.ID_DEPARTMENT = d.ID
-          INNER JOIN designer des ON p.ID_DESIGNER = des.ID 
-          INNER JOIN tipology t ON t.ID = p.ID_TIPOLOGY 
-          INNER JOIN season s ON s.ID = p.ID_SEASON 
-          INNER JOIN supplier supp ON supp.ID = p.ID_SUPPLIER
-          INNER JOIN status ST ON st.ID = p.ID_STATUS
-          LEFT OUTER JOIN product_picture pp on pp.ID_PRODUCT = p.ID and pp.IS_MAIN = 1
-                WHERE 1 = 1`;
+    P.ID IdProduct,
+    P.NAME ProductoNombre,
+    P.QUANTITY Cantidad,
+    P.COST Costo,
+    P.COST_IN_STORE Precio,
+    ROUND(((P.COST_IN_STORE/1.22 - P.COST)/(P.COST_IN_STORE/1.22)*100), 2) Margin,
+    P.WEIGHT Peso,
+    PP.PATH Foto,
+    SUPP.NAME Proveedor,
+    D.DESCRIPTION Departamento,
+    T.NAME Tipo,
+    MIN(F.DESCRIPTION) Calidad,
+    COUNT(F.DESCRIPTION) - 1 CalidadesAdicionales,
+    ST.NAME Estado
+    FROM
+    PRODUCT P
+    INNER JOIN COMBO_FABRIC COMF ON P.ID = COMF.ID_PRODUCT
+    INNER JOIN FABRIC F ON F.ID = COMF.ID_FABRIC
+    INNER JOIN DEPARTMENT D ON P.ID_DEPARTMENT = D.ID
+    INNER JOIN DESIGNER DES ON P.ID_DESIGNER = DES.ID
+    INNER JOIN TIPOLOGY T ON T.ID = P.ID_TIPOLOGY
+    INNER JOIN SEASON S ON S.ID = P.ID_SEASON
+    INNER JOIN SUPPLIER SUPP ON SUPP.ID = P.ID_SUPPLIER
+    INNER JOIN STATUS ST ON ST.ID = P.ID_STATUS
+    LEFT OUTER JOIN PRODUCT_PICTURE PP ON PP.ID_PRODUCT = P.ID AND PP.IS_MAIN = 1
+    WHERE 1 = 1`;
 
     if (idSeason != "nofilter") {
         if (idSeason.includes("&")) {
@@ -484,9 +484,9 @@ function getAllProductsWithFilters(
             const replaceWith = ",";
             const result = idFabric.split(search).join(replaceWith);
 
-            sqlString += ` AND pf.ID_FABRIC in (${result})`;
+            sqlString += ` AND COMF.ID_FABRIC in (${result})`;
         } else {
-            sqlString += ` AND pf.ID_FABRIC = ${idFabric}`;
+            sqlString += ` AND COMF.ID_FABRIC = ${idFabric}`;
         }
     }
     if (idDepartment != "nofilter") {
@@ -495,9 +495,9 @@ function getAllProductsWithFilters(
             const replaceWith = ",";
             const result = idDepartment.split(search).join(replaceWith);
 
-            sqlString += ` AND d.ID in (${result})`;
+            sqlString += ` AND D.ID in (${result})`;
         } else {
-            sqlString += ` AND d.ID = ${idDepartment}`;
+            sqlString += ` AND D.ID = ${idDepartment}`;
         }
     }
     if (idSupplier != "nofilter") {
@@ -506,20 +506,20 @@ function getAllProductsWithFilters(
             const replaceWith = ",";
             const result = idSupplier.split(search).join(replaceWith);
 
-            sqlString += ` AND supp.ID in (${result})`;
+            sqlString += ` AND SUPP.ID in (${result})`;
         } else {
-            sqlString += ` AND supp.ID = ${idSupplier}`;
+            sqlString += ` AND SUPP.ID = ${idSupplier}`;
         }
     }
-    if (idTipology != "nofilter") {
-        if (idTipology.includes("&")) {
+    if (idTIPOLOGY != "nofilter") {
+        if (idTIPOLOGY.includes("&")) {
             const search = "&";
             const replaceWith = ",";
-            const result = idTipology.split(search).join(replaceWith);
+            const result = idTIPOLOGY.split(search).join(replaceWith);
 
-            sqlString += ` AND t.ID in (${result})`;
+            sqlString += ` AND T.ID in (${result})`;
         } else {
-            sqlString += ` AND t.ID = ${idTipology}`;
+            sqlString += ` AND T.ID = ${idTIPOLOGY}`;
         }
     }
     if (idStatus != "nofilter") {
@@ -528,31 +528,31 @@ function getAllProductsWithFilters(
             const replaceWith = ",";
             const result = idStatus.split(search).join(replaceWith);
 
-            sqlString += ` AND st.ID in (${result})`;
+            sqlString += ` AND ST.ID in (${result})`;
         } else {
-            sqlString += ` AND st.ID = ${idStatus}`;
+            sqlString += ` AND ST.ID = ${idStatus}`;
         }
     }
     if (ProductName != "nofilter") {
-        sqlString += ` AND p.NAME like '%${ProductName}%'`;
+        sqlString += ` AND P.NAME like '%${ProductName}%'`;
     }
     if (ProductPrice != "nofilter") {
-        sqlString += ` AND p.COST = '${ProductPrice}'`;
+        sqlString += ` AND P.COST = '${ProductPrice}'`;
     }
     if (ProductWeight != "nofilter") {
-        sqlString += ` AND p.WEIGHT = '${ProductWeight}'`;
+        sqlString += ` AND P.WEIGHT = '${ProductWeight}'`;
     }
 
     if (shippingDate != "nofilter") {
-        sqlString += ` AND p.shipping_date = '${shippingDate}'`;
+        sqlString += ` AND P.shipping_date = '${shippingDate}'`;
     }
 
     if (quantity != "nofilter") {
-        sqlString += ` AND p.Quantity = '${quantity}'`;
+        sqlString += ` AND P.Quantity = '${quantity}'`;
     }
 
     if (shippingDate != "nofilter") {
-        sqlString += ` AND p.shipping_date = '${shippingDate}'`;
+        sqlString += ` AND P.shipping_date = '${shippingDate}'`;
     }
 
     if (idOrigin != "nofilter") {
@@ -560,9 +560,9 @@ function getAllProductsWithFilters(
             const search = "&";
             const replaceWith = ",";
             const result = idOrigin.split(search).join(replaceWith);
-            sqlString += ` AND p.ID_COUNTRY in (${result})`;
+            sqlString += ` AND P.ID_COUNTRY in (${result})`;
         } else {
-            sqlString += ` AND p.ID_COUNTRY = ${idOrigin}`;
+            sqlString += ` AND P.ID_COUNTRY = ${idOrigin}`;
         }
     }
     if (idDestination != "nofilter") {
@@ -570,9 +570,9 @@ function getAllProductsWithFilters(
             const search = "&";
             const replaceWith = ",";
             const result = idDestination.split(search).join(replaceWith);
-            sqlString += ` AND p.ID_COUNTRY_DESTINATION in (${result})`;
+            sqlString += ` AND P.ID_COUNTRY_DESTINATION in (${result})`;
         } else {
-            sqlString += ` AND p.ID_COUNTRY_DESTINATION = ${idDestination}`;
+            sqlString += ` AND P.ID_COUNTRY_DESTINATION = ${idDestination}`;
         }
     }
 
@@ -581,17 +581,18 @@ function getAllProductsWithFilters(
             const search = "&";
             const replaceWith = ",";
             const result = idShippingType.split(search).join(replaceWith);
-            sqlString += ` AND p.id_shipping in (${result})`;
+            sqlString += ` AND P.id_shipping in (${result})`;
         } else {
-            sqlString += ` AND p.id_shipping = ${idShippingType}`;
+            sqlString += ` AND P.id_shipping = ${idShippingType}`;
         }
     }
 
-    sqlString += ` GROUP BY p.ID, p.NAME, p.QUANTITY, p.cost, p.WEIGHT, pp.PATH, supp.NAME, d.DESCRIPTION, t.DESCRIPTION, st.DESCRIPTION ORDER BY P.id desc`;
+    sqlString += ` GROUP BY P.ID, P.NAME, P.QUANTITY, P.cost, P.WEIGHT, PP.PATH, SUPP.NAME, D.DESCRIPTION, T.NAME, ST.NAME ORDER BY P.ID desc`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return reject("error" + err);
             }
             resolve(rows);

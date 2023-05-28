@@ -90,6 +90,7 @@ router.route("/getTipologies/:IdMerchant/:IdIndustry").get((req, res) => {
 
 
 router.route("/getFibers/:IdMerchant").get((req, res) => {
+    console.log("aaaaaaaaaaaaaaaaaaa")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getFibers()
@@ -188,6 +189,9 @@ router.route("/getFabrics/:IdMerchant").get((req, res) => {
         });
 });
 
+router.route("/ping").get((req, res) => {
+    res.send("HOLAAAAAAAAAAAA")
+});
 router.route("/getShippingTypes/:IdMerchant").get((req, res) => {
     console.log("hola 2")
     currentBrand = new DynamicClass("ImpactaMerchant");

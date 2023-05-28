@@ -8,7 +8,7 @@ const listing = require("./RestApi/Listing");
 const approvals = require("./RestApi/Approvals");
 const dataSheet = require("./RestApi/DataSheet");
 const bodyParser = require("body-parser");
-
+const connection = require("./DAL/configuration/ConfigurationDB")
 const fs = require("fs");
 
 const port = process.env.PORT || 5173;
@@ -45,5 +45,15 @@ app.use("/approvals", approvals);
 app.use("/dataSheet", dataSheet);
 
 app.get("/", (req, res) => {
-    res.send("Hello World!");
+
+    console.log("hellooo")
+    connection.query('SELECT * FROM test', function (error, results, fields) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+      
+        console.log('Table content:', results);
+        res.send("Hello World!");
+      });
 });

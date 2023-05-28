@@ -20,7 +20,7 @@ router.route("/prueba/").get((req, res) => {
 
 router
     .route(
-        "/getAllProductsWithFilters/:idMerchant/:idSeason/:idDesigner/:idFabric/:idDepartment/:idSupplier/:idTipology/:idStatus/:ProductName/:ProductPrice/:ProductWeight/:idOrigin/:idDestination/:idShippingType/:shippingDate/:productSku"
+        "/getAllProductsWithFilters/:idMerchant/:idSeason/:idDesigner/:idFabric/:idDepartment/:idSupplier/:idTIPOLOGY/:idStatus/:ProductName/:ProductPrice/:ProductWeight/:idOrigin/:idDestination/:idShippingType/:shippingDate/:productSku"
     )
     .get((req, res) => {
         currentBrand = new DynamicClass("ImpactaListing");
@@ -32,7 +32,7 @@ router
                 req.params.idFabric,
                 req.params.idDepartment,
                 req.params.idSupplier,
-                req.params.idTipology,
+                req.params.idTIPOLOGY,
                 req.params.idStatus,
                 req.params.ProductName,
                 req.params.ProductPrice,

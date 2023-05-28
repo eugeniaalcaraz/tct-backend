@@ -161,9 +161,9 @@ module.exports = class ImpactaListing {
         })
     };
 
-    async getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTipology, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku){
+    async getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTIPOLOGY, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku){
         return new Promise(function(resolve, reject){
-            ListingRepository.getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTipology, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku).then(result => {
+            ListingRepository.getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTIPOLOGY, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku).then(result => {
                 resolve(result);
             }).catch(err => {
                 reject("Error: " + err);

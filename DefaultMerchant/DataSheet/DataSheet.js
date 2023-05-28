@@ -15,6 +15,7 @@ module.exports = class ImpactaDataSheet {
     return "Hi from Impacta DataSheet!";
   }
   async saveNewProduct(data) {
+    console.log("hola")
     let idSizeCurve;
 
     try {
@@ -38,7 +39,7 @@ module.exports = class ImpactaDataSheet {
             }
             await findCountry(data.idCountry);
             await findShippingType(data.idShipping);
-            await findTipology(data.idTipology);
+            await findTIPOLOGY(data.idTipology);
             await findStatus(data.idModeling);
             await findCollection(data.idCollection, data.idMerchant);
             await findDesigner(data.idDesigner, data.idMerchant);
@@ -53,7 +54,7 @@ module.exports = class ImpactaDataSheet {
         let savedFabrics = await saveFabrics(data);
         let tipologyName = await merchantRepository.getTipology(data.idTipology);
         if(data.idShoeMaterial > 0){
-          if(tipologyName[0].DESCRIPTION  !== "Zapato"){
+          if(tipologyName[0].NAME  !== "Zapato"){
             reject("Si se ingreso un material de zapatos la tipología debe corresponder a zapatos");
           }else{
             merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
@@ -315,9 +316,9 @@ async function findStatus(idModeling) {
   }
 }
 
-async function findTipology(idTypology) {
+async function findTIPOLOGY(idTypology) {
   try {
-    const result = await merchantRepository.findTipology(idTypology);
+    const result = await merchantRepository.findTIPOLOGY(idTypology);
     if (result.length > 0) {
       return result;
     } else {

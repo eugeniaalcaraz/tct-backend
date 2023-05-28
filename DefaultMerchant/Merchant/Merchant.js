@@ -155,6 +155,7 @@ module.exports = class ImpactaMerchant {
             MerchantRepository.getFibers().then(result => {
                 resolve(result);
             }).catch(err => {
+                console.log(err)
                 reject("Error - Whoops algo salió mal");
             });
        });
