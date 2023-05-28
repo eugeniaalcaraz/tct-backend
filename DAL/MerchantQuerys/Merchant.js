@@ -8,7 +8,7 @@ const { start } = require("repl");
 function getMerchant({ idMerchant }) {
   let stringQuery = `SELECT * FROM merchant where id = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -20,7 +20,7 @@ function getMerchant({ idMerchant }) {
 function startTransaction() {
   let stringQuery = "START TRANSACTION";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -31,7 +31,7 @@ function startTransaction() {
 // function commit(){
 //     let stringQuery = "COMMIT";
 //     return new Promise(function(resolve, reject) {
-//         con.query(stringQuery, function (err, rows, fields) {
+//         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
 //              if (err) {
 //                  return reject(err);
 //              }
@@ -47,7 +47,7 @@ function getMerchantSeason({ idMerchant, idSeason }) {
     " and s.ID_MERCHANT = " +
     idMerchant;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -63,7 +63,7 @@ function getMerchantDepartment({ idMerchant, idDepartment }) {
     " and sd.id_department = " +
     idDepartment;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -76,7 +76,7 @@ function getMerchantManagmentUnits({ idMerchant }) {
   let stringQuery =
   `SELECT ID, DESCRIPTION FROM MANAGMENT_UNIT WHERE ID_MERCHANT = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -89,9 +89,9 @@ function getMerchantIndustries({ idMerchant, idManagmentUnit }) {
     let stringQuery =
     `SELECT ind.ID, ind.DESCRIPTION FROM INDUSTRY ind INNER JOIN INDUSTRY_MANAGMENT_UNIT indManagUnit on
     ind.ID = indManagUnit.ID_INDUSTRY WHERE ind.ID_MERCHANT = ${idMerchant} AND indManagUnit.ID_MANAGMENT_UNIT = ${idManagmentUnit}`;
-    console.log(stringQuery)
+    console.log(stringQuery.toUpperCase())
     return new Promise(function (resolve, reject) {
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
@@ -104,7 +104,7 @@ function getMerchantSeasons({ idMerchant }) {
   let stringQuery =
     "SELECT ID Id, NAME Name FROM season WHERE ID_MERCHANT = " + idMerchant;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -118,7 +118,7 @@ function getMerchantSuppliers({ idMerchant }) {
     "select sup.ID Id, sup.NAME Name, sup.LASTNAME Lastname from supplier sup inner join supplier_merchant supMerchant on sup.ID = supMerchant.ID_SUPPLIER WHERE supMerchant.ID_MERCHANT = " +
     idMerchant;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -132,7 +132,7 @@ function getMerchantDesigners({ idMerchant }) {
     "SELECT ID Id, NAME Name, LAST_NAME LastName FROM DESIGNER WHERE ACTIVE = 1 AND ID_MERCHANT =" +
     idMerchant;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -144,7 +144,7 @@ function getMerchantDesigners({ idMerchant }) {
 function getCountries() {
   let stringQuery = "SELECT ID Id, NAME Name FROM COUNTRY";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -156,7 +156,7 @@ function getCountries() {
 function getTipologies(IdMerchant, idIndustry) {
   let stringQuery = `SELECT ID Id, DESCRIPTION Description, CODE Code, WEIGHT Weight FROM TIPOLOGY WHERE ID_INDUSTRY = ${idIndustry}`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -169,7 +169,7 @@ function getTipologies(IdMerchant, idIndustry) {
 function getFibers() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM FIBER";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -181,7 +181,7 @@ function getFibers() {
 function getColors() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description, CODE Code, RGB  FROM COLOR";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -193,7 +193,7 @@ function getColors() {
 function getTrims() {
   let stringQuery = "select ID Id, DESCRIPTION Description from avio";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -205,7 +205,7 @@ function getTrims() {
 function getMerchantLines(idMerchant) {
     let stringQuery = `SELECT ID, DESCRIPTION FROM LINE WHERE ID_MERCHANT = ${idMerchant}`;
     return new Promise(function (resolve, reject) {
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
@@ -218,7 +218,7 @@ function getMerchantLines(idMerchant) {
 function getMerchantBodyFit(idMerchant) {
     let stringQuery = `SELECT ID, DESCRIPTION FROM MERCHANT_BODY_FIT WHERE ID_MERCHANT = ${idMerchant}`;
     return new Promise(function (resolve, reject) {
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
@@ -231,7 +231,7 @@ function getMerchantBodyFit(idMerchant) {
 function getPlacements() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM PLACEMENT";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -243,7 +243,7 @@ function getPlacements() {
 function getShippingTypes() {
   let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM SHIPPING_TYPE";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -259,7 +259,7 @@ function findCollection(idCollection, idMerchant) {
     " and m.ID = " +
     idMerchant;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -272,7 +272,7 @@ function findShippingType(idShippingType) {
   let stringQuery = "select * from SHIPPING_TYPE where id = " + idShippingType;
 
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -284,7 +284,7 @@ function findShippingType(idShippingType) {
 function findCountry(idCountry) {
   let stringQuery = "select * from COUNTRY where id = " + idCountry;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -296,7 +296,7 @@ function findCountry(idCountry) {
 function findTIPOLOGY(idTIPOLOGY) {
   let stringQuery = "select * from TIPOLOGY where id = " + idTIPOLOGY;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -307,7 +307,7 @@ function findTIPOLOGY(idTIPOLOGY) {
 function findStatus(idStatus) {
   let stringQuery = "select * from STATUS where id = " + idStatus;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -319,7 +319,7 @@ function findStatus(idStatus) {
 function findShippingType(idShippingType) {
   let stringQuery = "select * from SHIPPING_TYPE where id = " + idShippingType;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -335,7 +335,7 @@ function findFabric(fabricIds, idMerchant) {
     idMerchant +
     " group by id_fabric having count(id_fabric) > 1 ";
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -347,7 +347,7 @@ function findFabric(fabricIds, idMerchant) {
 function getFabricFromId(idFabric, idMerchant) {
   let stringQuery =`select * from fabric where id = ${idFabric} and ID_MERCHANT = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -359,12 +359,12 @@ function getFabricFromId(idFabric, idMerchant) {
 
 async function getFabrics(idMerchant) {
   let stringQuery =
-    "SELECT ID Id, DESCRIPTION Description, WEIGHT Weight, ID_MERCHANT IdMerchant FROM fabric WHERE ID_MERCHANT = " +
+    "SELECT ID Id, DESCRIPTION Description, WEIGHT Weight, ID_MERCHANT IdMerchant FROM FABRIC WHERE ID_MERCHANT = " +
     idMerchant +
     " AND DESCRIPTION <> 'PendingDescription'";
 
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -375,10 +375,10 @@ async function getFabrics(idMerchant) {
 
 async function getFabricComposition(idFabric) {
   let stringQuery =
-    "select f.DESCRIPTION Description, pf.PERCENTAGE Percentage  from percentage_fiber pf inner join fiber f on pf.ID_FIBER = f.ID where pf.ID_FABRIC = " +
+    "select f.DESCRIPTION Description, pf.PERCENTAGE Percentage from percentage_fiber pf inner join fiber f on pf.ID_FIBER = f.ID where pf.ID_FABRIC = " +
     idFabric;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase().toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -390,7 +390,7 @@ async function getFabricComposition(idFabric) {
 function findFibers(fiberIds) {
   let stringQuery = `select * from fiber where id in (${fiberIds})`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -402,7 +402,7 @@ function getFabric(description, weight) {
   let stringQuery = `SELECT * FROM FABRIC WHERE DESCRIPTION = '${description}' AND WEIGHT = ${weight}`;
 
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -433,7 +433,7 @@ function insertFabric(description, weight, idMerchant) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO FABRIC (DESCRIPTION,WEIGHT, ID_MERCHANT) 
                         VALUES ('${description}',${weight},${idMerchant})`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -446,7 +446,7 @@ function insertShoeMaterialProd(idShoeMaterial, idProd) {
     return new Promise(function (resolve, reject) {
       let stringQuery = `insert into SHOE_MATERIAL_PROD (ID_SHOE_MATERIAL, ID_PRODUCT) 
                           values ('${idShoeMaterial}',${idProd})`;
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
@@ -577,7 +577,7 @@ async function saveFiberPercentage(fabric, idFabric) {
 function findDesigner(idDesigner, idMerchant) {
   let stringQuery = `select * from DESIGNER where id = ${idDesigner} and id_merchant = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -592,8 +592,8 @@ function saveSizeCurve(sizeCurve, idMerchant) {
 //     let stringQuery = `insert into size_curve (DESCRIPTION, ID_MERCHANT, XXS, XS, S, M,L, XL, XXL, XXXL, XXXXL)  values('-',${idMerchant},${sizeCurve[0]},${sizeCurve[1]},
 //                            ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
 //                            ${sizeCurve[7]},${sizeCurve[8]})`;
-//                            console.log(stringQuery);
-//     con.query(stringQuery, function (err, rows, fields) {
+//                            console.log(stringQuery.toUpperCase());
+//     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
 //       if (err) {
 //         return reject(err);
 //       }
@@ -605,7 +605,7 @@ function saveSizeCurve(sizeCurve, idMerchant) {
 async function saveFiberPercentager(idFiber, percentage, idFabric) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `insert into PERCENTAGE_FIBER values (${idFiber},${percentage},${idFabric})`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -617,7 +617,7 @@ async function saveFiberPercentager(idFiber, percentage, idFabric) {
 function savePicture(picture, idProuct, isMain, pictNum) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO product_picture (PATH, ID_PRODUCT, IS_MAIN) VALUES ('${picture}', ${idProuct}, ${isMain})`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -642,7 +642,7 @@ function saveProduct(prod, prodNumber) {
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
                        ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'),
                        ${prod.idSizeCurve}, ${prod.sizeCurveType})`;//order
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -750,8 +750,8 @@ function updateProduct(prod, prodNumber) {
         stringQuery = stringQuery.slice(0, -2); // Remove the trailing comma and space
 
         stringQuery += ` WHERE ID = ${prod.id}`;
-        console.log(stringQuery);
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase());
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
               return reject(err);
             }
@@ -770,8 +770,8 @@ function getProductNumber(idSeason){
         END AS number
         FROM PRODUCT
         WHERE ID_SEASON = ${idSeason}`;//order
-        console.log(stringQuery)
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase())
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -783,7 +783,7 @@ function getProductNumber(idSeason){
 function getMerchantBrands(idMerchant){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, NAME, CODE, ID_MERCHANT FROM MERCHANT_BRAND WHERE ID_MERCHANT = ${idMerchant}`;//order
-        con.query(stringQuery, function (err, rows, fields) {
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -796,7 +796,7 @@ function getMerchantBrands(idMerchant){
 function getMerchantConcepts(idMerchant){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, DESCRIPTION FROM CONCEPT WHERE ID_MERCHANT = ${idMerchant}`;//order
-        con.query(stringQuery, function (err, rows, fields) {
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -808,7 +808,7 @@ function getMerchantConcepts(idMerchant){
 function getMerchantShoeMaterials(idMerchant){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, DESCRIPTION FROM SHOE_MATERIAL WHERE ID_MERCHANT = ${idMerchant}`;//order
-        con.query(stringQuery, function (err, rows, fields) {
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -820,7 +820,7 @@ function getMerchantShoeMaterials(idMerchant){
 function getProuct(idProduct) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `SELECT * FROM product where id = ${idProduct}`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -844,7 +844,7 @@ function saveComboAvio(idAvio, idColor, idProduct) {
     let stringQuery = `INSERT INTO COMBO_AVIO (ID_AVIO, ID_COLOR, ID_PRODUCT, ID_STATUS,
                         STATUS_DATE) VALUES (${idAvio},${idColor},${idProduct}, 1,'${getFormmatedDate()}')`;
 
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -858,7 +858,7 @@ function saveComboAvio(idAvio, idColor, idProduct) {
 function getMerchantRise(idMerchant) {
     return new Promise(function (resolve, reject) {
       let stringQuery = `SELECT ID, DESCRIPTION FROM RISE WHERE ID_MERCHANT = ${idMerchant}`;
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
@@ -871,7 +871,7 @@ function getMerchantRise(idMerchant) {
 function getIdPrint(idPrint) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `select * from printimpacta where id = ${idPrint}`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -885,7 +885,7 @@ function savePrint(description, colorCount) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `insert into PRINT (NAME, COLOUR_COUNT) values ( '${description}',${colorCount})`;
 
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -949,7 +949,7 @@ function insertComboFabric(
       let onCreateStatus = 1;
       let stringQuery = `INSERT INTO COMBO_FABRIC (ID_PRODUCT, ID_FABRIC, ID_COLOR, ID_PRINT, ID_PLACEMENT, ID_STATUS_COLOR, ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT, CONSUMPTION) values (${idProduct}, ${idFabric}, ${idColor}, ${idPrint}, ${placement}, ${onCreateStatus}, ${onCreateStatus}, '${shortDate}', '${shortDate}', ${consumption})`;
       
-      con.query(stringQuery, function (err, rows, fields) {
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -974,7 +974,7 @@ function getFormattedDate(strDate) {
 function getAvio(idAvio) {
   return new Promise(function (resolve, reject) {
     let stringQuery = `SELECT * FROM AVIO WHERE ID IN (${idAvio})`;
-    con.query(stringQuery, function (err, rows, fields) {
+    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -986,8 +986,8 @@ function getAvio(idAvio) {
 function getTipology(idTipology){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, NAME FROM TIPOLOGY WHERE ID = ${idTipology}`;
-        console.log(stringQuery);
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase());
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -1000,8 +1000,8 @@ function getTipology(idTipology){
 function getMerchantClothingSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_CLOTHES`;
-        console.log(stringQuery)
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase())
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -1012,8 +1012,8 @@ function getMerchantClothingSizeCurve(){
 function getMerchantDenimSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_DENIM`;
-        console.log(stringQuery)
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase())
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
@@ -1024,8 +1024,8 @@ function getMerchantDenimSizeCurve(){
 function getMerchantShoesSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_SHOES`;
-        console.log(stringQuery)
-        con.query(stringQuery, function (err, rows, fields) {
+        console.log(stringQuery.toUpperCase())
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }

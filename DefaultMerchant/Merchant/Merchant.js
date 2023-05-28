@@ -204,10 +204,13 @@ module.exports = class ImpactaMerchant {
         var result = [];
         return new Promise(async function(resolve, reject){
           let fabrics = await MerchantRepository.getFabrics(idMerchant);
+          console.log(fabrics);
           let promises = [];
           fabrics.forEach(async element => {
+            console.log("Recorriendo cada tela")
+            console.log(element);
             promises.push(new Promise(async function(resolve, innerReject){
-              var fabricComposition = await MerchantRepository.getFabricComposition(element.Id);
+              var fabricComposition = await MerchantRepository.getFabricComposition(element.ID);
               result.push({IdFabric: element.Id, Description: element.Description, Weight: element.Weight, Composition: fabricComposition})
               resolve();
             }));

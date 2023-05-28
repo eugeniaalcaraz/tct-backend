@@ -71,7 +71,7 @@ function getBalanceDatesConfig({ idMerchant }) {
         "SELECT bdc.ATT_DFS_FOR_NOT_APPROVED AttentionDaysConfigForNotApproved, bdc.CRIT_DFS_FOR_PENDANT CriticalDaysConfigForPendant, bdc.CRIT_DFS_FOR_NOT_APPROVED CriticalDaysConfigForNotApproved, bdc.ATT_DFS_FOR_PENDANT AttentionDaysConfigForPendant FROM BALANCE_DATES_CONFIG bdc WHERE bdc.ID_MERCHANT = " +
         idMerchant;
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery, function (err, rows, fields) {
+        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
@@ -92,7 +92,7 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
         year;
 
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery, function (err, rows, fields) {
+        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
@@ -109,7 +109,7 @@ function getProductsStatus({ idMerchant, idSeason }) {
         idSeason +
         " GROUP BY P.ID_INSPECTION";
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery, function (err, rows, fields) {
+        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
@@ -126,7 +126,7 @@ function getDataForMarginCalculations(idMerchant, idSeason) {
         " AND ID_MERCHANT = " +
         idMerchant;
     return new Promise(function (resolve, reject) {
-        con.query(stringQuery, function (err, rows, fields) {
+        con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
@@ -143,7 +143,7 @@ function getTopProductsWithStatus(idMerchant, idSeason, idStatus, limit) {
         idSeason +
         " limit 6";
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery, function (err, rows, fields) {
+        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
