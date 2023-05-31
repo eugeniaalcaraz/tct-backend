@@ -169,12 +169,15 @@ module.exports = class ImpactaDashboard {
     async getCalendarData({ idMerchant, idSeason, month, year }) {
         var merchant = new DefaultMerchant();
         return new Promise(function (resolve, reject) {
+            console.log("1");
             if (validateDate) {
                 merchant.merchantExists({ idMerchant }).then((result) => {
+                    console.log("2");
                     if (result.length > 0) {
                         merchant
                             .getMerchantSeason({ idMerchant, idSeason })
                             .then((result) => {
+                                console.log("3");
                                 if (result.length > 0) {
                                     DashboardRepository.getShippingDates({
                                         idMerchant,
@@ -183,6 +186,7 @@ module.exports = class ImpactaDashboard {
                                         year,
                                     })
                                         .then((result) => {
+                                            console.log("4");
                                             resolve(result);
                                         })
                                         .catch((err) => {

@@ -50,6 +50,7 @@ module.exports = class ImpactaDataSheet {
           }
         }
         let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
+        console.log("alo" + prodNumber)
         idProduct = await saveProduct(data, prodNumber);
         let savedFabrics = await saveFabrics(data);
         let tipologyName = await merchantRepository.getTipology(data.idTipology);

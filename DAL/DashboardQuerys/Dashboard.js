@@ -32,13 +32,18 @@ function getSeasons({ idMerchant, idDepartment }) {
 
 function getBalanceData({ idMerchant, idSeason }) {
     let sqlString =
-        "SELECT prod.ID IdProduct, prod.ID_INSPECTION IdInspection, prod.ENTRY_DATE ShippingDate, DATEDIFF(now(),prod.ENTRY_DATE) DaysBeforeShipping FROM SEASON season,PRODUCT PRODUCT WHERE season.ID = prod.ID_SEASON AND prod.ID_MERCHANT = " +
-        idMerchant +
-        " and prod.ID_SEASON = " +
-        idSeason;
+        `SELECT product.ID IdProduct, 
+                product.ID_INSPECTION IdInspection, 
+                product.ENTRY_DATE ShippingDate, 
+                DATEDIFF(now(),product.ENTRY_DATE) DaysBeforeShipping 
+        FROM SEASON season,
+             PRODUCT PRODUCT 
+        WHERE season.ID = product.ID_SEASON AND product.ID_MERCHANT = ${idMerchant}
+        and product.ID_SEASON = ${idSeason}`;
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        pool.query(sqlString.toUpperCase(), function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -73,6 +78,7 @@ function getBalanceDatesConfig({ idMerchant }) {
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -82,7 +88,7 @@ function getBalanceDatesConfig({ idMerchant }) {
 
 function getShippingDates({ idMerchant, idSeason, month, year }) {
     let stringQuery =
-        "SELECT p.ENTRY_DATE ShippingDate, p.product_order OrderNumber FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
+        "SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate  FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
         idSeason +
         " AND p.ID_MERCHANT = " +
         idMerchant +
@@ -90,10 +96,11 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
         month +
         " AND YEAR(p.ENTRY_DATE) = " +
         year;
-
+    console.log(stringQuery);
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -137,7 +144,7 @@ function getDataForMarginCalculations(idMerchant, idSeason) {
 
 function getTopProductsWithStatus(idMerchant, idSeason, idStatus, limit) {
     let stringQuery =
-        "select prod.name Name from product PRODUCTwhere prod.ID_MERCHANT = " +
+        "select PRODUCT.NAME Name from product PRODUCT where PRODUCT.ID_MERCHANT = " +
         idMerchant +
         " AND ID_STATUS = 2 AND ID_SEASON = " +
         idSeason +

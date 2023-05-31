@@ -78,6 +78,7 @@ function getMerchantManagmentUnits({ idMerchant }) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -93,6 +94,7 @@ function getMerchantIndustries({ idMerchant, idManagmentUnit }) {
     return new Promise(function (resolve, reject) {
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
+          console.log(err);
           return reject(err);
         }
         resolve(rows);
@@ -120,6 +122,7 @@ function getMerchantSuppliers({ idMerchant }) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -154,10 +157,11 @@ function getCountries() {
 }
 
 function getTipologies(IdMerchant, idIndustry) {
-  let stringQuery = `SELECT ID Id, DESCRIPTION Description, CODE Code, WEIGHT Weight FROM TIPOLOGY WHERE ID_INDUSTRY = ${idIndustry}`;
+  let stringQuery = `SELECT ID Id, NAME Description, CODE Code, WEIGHT Weight FROM TIPOLOGY WHERE ID_INDUSTRY = ${idIndustry}`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -179,10 +183,11 @@ function getFibers() {
 }
 
 function getColors() {
-  let stringQuery = "SELECT ID Id, DESCRIPTION Description, CODE Code, RGB  FROM COLOR";
+  let stringQuery = "SELECT ID Id, DESCRIPTION Description, CODE Code, RGB  FROM COLOUR";
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -195,6 +200,7 @@ function getTrims() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -233,6 +239,7 @@ function getPlacements() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -241,10 +248,11 @@ function getPlacements() {
 }
 
 function getShippingTypes() {
-  let stringQuery = "SELECT ID Id, DESCRIPTION Description FROM SHIPPING_TYPE";
+  let stringQuery = "SELECT ID Id, NAME Description FROM SHIPPING_TYPE";
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -634,15 +642,15 @@ function saveProduct(prod, prodNumber) {
                        ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
                        ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
                        YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE, ID_SIZE_CURVE,
-                       SIZE_CURVE_TYPE) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
+                       SIZE_CURVE_TYPE, ID_DEPARTMENT) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
                        1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology},${prod.idSeason},
                        STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'), STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'),${prod.idCountry},
                        ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
                        ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'),
-                       ${prod.idSizeCurve}, ${prod.sizeCurveType})`;//order
-    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+                       ${prod.idSizeCurve}, ${prod.sizeCurveType}, ${prod.idDepartment})`;//order
+    con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
@@ -761,6 +769,7 @@ function updateProduct(prod, prodNumber) {
     
   }
 function getProductNumber(idSeason){
+
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT
         CASE WHEN COUNT(*) > 1
@@ -773,9 +782,12 @@ function getProductNumber(idSeason){
         console.log(stringQuery.toUpperCase())
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
-          resolve(rows[0].number);
+          console.log("prod number ");
+          console.log(rows);
+          resolve(rows[0].NUMBER);
         });
       });
 }
@@ -785,6 +797,7 @@ function getMerchantBrands(idMerchant){
         let stringQuery = `SELECT ID, NAME, CODE, ID_MERCHANT FROM MERCHANT_BRAND WHERE ID_MERCHANT = ${idMerchant}`;//order
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
           console.log(rows)
@@ -810,6 +823,7 @@ function getMerchantShoeMaterials(idMerchant){
         let stringQuery = `SELECT ID, DESCRIPTION FROM SHOE_MATERIAL WHERE ID_MERCHANT = ${idMerchant}`;//order
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
           resolve(rows);
@@ -862,7 +876,6 @@ function getMerchantRise(idMerchant) {
         if (err) {
           return reject(err);
         }
-  
         resolve(rows);
       });
     });
@@ -964,11 +977,12 @@ function getFormattedDate(strDate) {
     "'" +
     date.getUTCDate() +
     "," +
-    date.getUTCMonth() +
+    (date.getUTCMonth() + 1) + // Adding 1 to get the correct month (0-11)
     "," +
     date.getUTCFullYear() +
     "'"
   );
+
 }
 
 function getAvio(idAvio) {
@@ -1003,6 +1017,7 @@ function getMerchantClothingSizeCurve(){
         console.log(stringQuery.toUpperCase())
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
           resolve(rows);
@@ -1015,6 +1030,7 @@ function getMerchantDenimSizeCurve(){
         console.log(stringQuery.toUpperCase())
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
           resolve(rows);
@@ -1027,6 +1043,7 @@ function getMerchantShoesSizeCurve(){
         console.log(stringQuery.toUpperCase())
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
+            console.log(err);
             return reject(err);
           }
           resolve(rows);
