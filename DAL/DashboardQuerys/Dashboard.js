@@ -88,7 +88,7 @@ function getBalanceDatesConfig({ idMerchant }) {
 
 function getShippingDates({ idMerchant, idSeason, month, year }) {
     let stringQuery =
-        "SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate  FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
+        "SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate, p.NUMBER ProductNumber  FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
         idSeason +
         " AND p.ID_MERCHANT = " +
         idMerchant +
@@ -125,7 +125,25 @@ function getProductsStatus({ idMerchant, idSeason }) {
         });
     });
 }
+function getMaterialsSummary(idMerchant, idSeason) {
+    let stringQuery = `SELECT f.DESCRIPTION, 
+                              f.ID, COUNT(*) AS TOTALPERFABRIC, 
+                              f.WEIGHT
+                       FROM COMBO_FABRIC cb
+                       INNER JOIN PRODUCT p ON cb.ID_PRODUCT = p.ID
+                       INNER JOIN FABRIC f ON cb.ID_FABRIC = f.ID
+                       WHERE p.ID_SEASON = ${idSeason} AND p.ID_MERCHANT = ${idMerchant}
+                       GROUP BY cb.ID_FABRIC, f.DESCRIPTION`;
+    return new Promise(function (resolve, reject) {
+        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+            if (err) {
+                return reject(err);
+            }
 
+            resolve(rows);
+        });
+    });
+}
 function getDataForMarginCalculations(idMerchant, idSeason) {
     let stringQuery =
         "SELECT SUM(cost) as sumCost, SUM(cost_in_store) as sumCostInStore FROM PRODUCT WHERE ID_SEASON = " +
@@ -478,3 +496,4 @@ module.exports.getBalanceData = getBalanceData;
 module.exports.getShippingDates = getShippingDates;
 module.exports.getTopProductsWithStatus = getTopProductsWithStatus;
 module.exports.getDataForMarginCalculations = getDataForMarginCalculations;
+module.exports.getMaterialsSummary = getMaterialsSummary;

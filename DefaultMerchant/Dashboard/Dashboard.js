@@ -85,6 +85,25 @@ module.exports = class ImpactaDashboard {
         });
     }
 
+    async getMaterialsSummary(idMerchant, idSeason) {
+        return new Promise(function (resolve, reject) {
+            DashboardRepository.getMaterialsSummary(
+                idMerchant,
+                idSeason,
+            ).then((result) => {
+                const totalCount = result.reduce((sum, item) => sum + item['TOTALPERFABRIC'], 0);
+                console.log(totalCount)
+                let res = result.map(item => ({
+                Description: item.DESCRIPTION,
+                Weight: item.WEIGHT,
+                Percentage: (item['TOTALPERFABRIC'] / totalCount) * 100
+                }));
+
+                resolve(res);
+            });
+        });
+    }
+
     async getSeasonMargin(idMerchant, idSeason) {
         return new Promise(function (resolve, reject) {
             DashboardRepository.getDataForMarginCalculations(
@@ -178,6 +197,7 @@ module.exports = class ImpactaDashboard {
                             .getMerchantSeason({ idMerchant, idSeason })
                             .then((result) => {
                                 console.log("3");
+                                
                                 if (result.length > 0) {
                                     DashboardRepository.getShippingDates({
                                         idMerchant,

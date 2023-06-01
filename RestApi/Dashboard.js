@@ -148,6 +148,23 @@ router.route("/getTopSixSentSamples/:idMerchant/:idSeason").get((req, res) => {
         });
 });
 
+router.route("/getMaterialsSummary/:idMerchant/:idSeason").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaDashboard");
+    currentBrand
+        .getMaterialsSummary(
+            req.params.idMerchant,
+            req.params.idSeason
+        )
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(error);
+        });
+});
+
 router.route("/getAllProducts/:idMerchant/:filters").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaDashboard");
     currentBrand

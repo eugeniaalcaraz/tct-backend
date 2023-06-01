@@ -661,7 +661,7 @@ function saveProduct(prod, prodNumber) {
 //TODO MG: Que eran esos 1
 function updateProduct(prod, prodNumber) {
     return new Promise(function (resolve, reject) {
-      let stringQuery = 'UPDATE PRODUCTSET ';
+      let stringQuery = 'UPDATE PRODUCT SET ';
         if (prod.name !== undefined) {
             stringQuery += `NAME = '${prod.name}', `;
         }
