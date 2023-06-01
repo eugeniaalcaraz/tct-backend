@@ -98,7 +98,7 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
         year;
     console.log(stringQuery);
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+        pool.query(stringQuery, function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 return reject(err);
