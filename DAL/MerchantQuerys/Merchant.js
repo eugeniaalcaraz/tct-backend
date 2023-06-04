@@ -262,13 +262,12 @@ function getShippingTypes() {
 
 function findCollection(idCollection, idMerchant) {
   let stringQuery =
-    "select * from SEASON s inner join MERCHANT m on s.id_merchant = m.id inner join COLLECTION c on c.ID_SEASON = s.id where c.ID = " +
-    idCollection +
-    " and m.ID = " +
+    "select * from SEASON s inner join MERCHANT m on s.id_merchant = m.id inner join COLLECTION c on c.ID_SEASON = s.id where m.ID = " +
     idMerchant;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -638,17 +637,16 @@ function saveProduct(prod, prodNumber) {
   return new Promise(function (resolve, reject) {
     //let shipping = ; //TODO MG: ?? que es el 3?
     let idRise = prod.idRise === undefined ? null : prod.idRise;
-    let stringQuery = `INSERT INTO PRODUCT (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_COLLECTION, ID_TIPOLOGY, 
-                       ID_SEASON,SHIPPING_DATE, ENTRY_DATE, ID_COUNTRY, ID_SHIPPING, 
-                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_COUNTRY_DESTINATION, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
-                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, WAREHOUSE_ENTRY_DATE, ID_SIZE_CURVE,
+    let stringQuery = `INSERT INTO PRODUCT (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_TIPOLOGY, 
+                       ID_SEASON, ID_COUNTRY, 
+                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
+                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE, ID_SIZE_CURVE,
                        SIZE_CURVE_TYPE, ID_DEPARTMENT) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
-                       1, ${prod.idMerchant},${prod.idCollection},${prod.idTipology},${prod.idSeason},
-                       STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'), STR_TO_DATE(${getFormattedDate(prod.entryDate)}, '%d,%m,%Y'),${prod.idCountry},
-                       ${prod.idShipping === " " ? 3 : prod.idShipping},${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
-                       ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idCountryDestination},${prod.idSupplier},
-                       ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta}, ${prod.idConcept}, ${prod.idLine},
-                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},STR_TO_DATE(${getFormattedDate(prod.warehouseEntryDate)}, '%d,%m,%Y'),
+                       1, ${prod.idMerchant},${prod.idTipology},${prod.idSeason},${prod.idCountry},
+                       ${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
+                       ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idSupplier},
+                       ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta === true ? 1 : 0}, ${prod.idConcept}, ${prod.idLine},
+                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},
                        ${prod.idSizeCurve}, ${prod.sizeCurveType}, ${prod.idDepartment})`;//order
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -850,24 +848,87 @@ function getFormmatedDate() {
     let day = String(currentDate.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`.toString();
   }
-//TODO: MG Que es el 1
-function saveComboAvio(idAvio, idColor, idProduct) {
+
+  function saveColorFabricCombo(idComboFabric, idColor) {
 
     
-  return new Promise(function (resolve, reject) {
-    let stringQuery = `INSERT INTO COMBO_AVIO (ID_AVIO, ID_COLOR, ID_PRODUCT, ID_STATUS,
-                        STATUS_DATE) VALUES (${idAvio},${idColor},${idProduct}, 1,'${getFormmatedDate()}')`;
+    return new Promise(function (resolve, reject) {
+      let stringQuery = `INSERT INTO COMBO_FABRIC_COLOR (ID_COMBO_FABRIC, ID_COLOR, ID_STATUS) VALUES (${idComboFabric},${idColor},1)`;
+  
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+  
+        resolve(rows);
+      });
+    });
+  }
+  function savePrintFabricCombo(idComboFabric, idPrint) {
 
-    con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+    
+    return new Promise(function (resolve, reject) {
+      let stringQuery = `INSERT INTO COMBO_FABRIC_PRINT (ID_COMBO_FABRIC, ID_PRINT, ID_STATUS) VALUES (${idComboFabric},${idPrint},1)`;
+  
+      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+        if (err) {
+          return reject(err);
+        }
+  
+        resolve(rows);
+      });
+    });
+  }
+
+function saveComboAvio(idAvio, 
+                       idCountryDestination, 
+                       idProduct,
+                       entryDate,
+                       warehouseEntryDate,
+                       shippingDate,
+                       idShipping,
+                       colors) {
+  let formattedEntryDate = getFormattedDate(entryDate);
+  let formattedWarehouseEntryDate = getFormattedDate(warehouseEntryDate);
+  let formattedShippingDate = getFormattedDate(shippingDate);
+    
+  return new Promise(function (resolve, reject) {
+    let stringQuery = `INSERT INTO COMBO_AVIO (ID_AVIO, ID_PRODUCT,
+                       ID_COUNTRY_DESTINATION,	ENTRY_DATE,	WAREHOUSE_ENTRY_DATE,
+                       	SHIPPING_DATE,	ID_SHIPPING) VALUES (${idAvio},${idProduct},
+                        ${idCountryDestination}, STR_TO_DATE(${formattedEntryDate}, '%d,%m,%Y'), 
+                        STR_TO_DATE(${formattedWarehouseEntryDate}, '%d,%m,%Y'),
+                        STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping})`;
+    console.log(stringQuery);                      
+    con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
-
+      console.log("fale");
+      console.log(rows);
+      await colors.map(c => {
+        saveComboAvioColor(rows.insertId,c);
+      });
       resolve(rows);
     });
   });
 }
 
+async function saveComboAvioColor(idComboAvio, idColor) {
+return new Promise(function (resolve, reject) {
+let stringQuery = `INSERT INTO COMBO_AVIO_COLOR (ID_COMBO_AVIO, ID_COLOR,
+                   ID_STATUS) VALUES (${idComboAvio},${idColor}, 1)`;
+console.log(stringQuery);
+con.query(stringQuery, function (err, rows, fields) {
+if (err) {
+return reject(err);
+}
+
+resolve(rows);
+});
+});
+}
 
 function getMerchantRise(idMerchant) {
     return new Promise(function (resolve, reject) {
@@ -916,7 +977,14 @@ function saveComboFabric(
   colorCount,
   placement,
   idProduct,
-  consumption
+  consumption,
+  idCountryDestination,
+  entryDate,
+  warehouseEntryDate,
+  shippingDate,
+  idShipping,
+  colors,
+  prints
 ) {
   return new Promise(function (resolve, reject) {
     savePrint(printDescription, colorCount).then((result) => {
@@ -926,8 +994,17 @@ function saveComboFabric(
         idPrint,
         placement,
         idProduct, 
-        consumption
+        consumption,
+        idCountryDestination,
+        entryDate,
+        warehouseEntryDate,
+        shippingDate,
+        idShipping,
+        colors,
+        prints
       ).then((result) => {
+        console.log("ELEFANTE");
+        console.log(result)
         resolve(result);
       });
     });
@@ -950,22 +1027,48 @@ function insertComboFabric(
   idPrint,
   placement,
   idProduct,
-  consumption
+  consumption,
+  idCountryDestination,
+  entryDate,
+  warehouseEntryDate,
+  shippingDate,
+  idShipping, 
+  colors,
+  prints
 ) {
     let currentDate = new Date();
     let year = currentDate.getFullYear();
     let month = String(currentDate.getMonth() + 1).padStart(2, '0');
     let day = String(currentDate.getDate()).padStart(2, '0');
     let shortDate = `${year}-${month}-${day}`.toString();
-
+    console.log("idCountryDestination " + idCountryDestination);
     return new Promise(function (resolve, reject) {
       let onCreateStatus = 1;
-      let stringQuery = `INSERT INTO COMBO_FABRIC (ID_PRODUCT, ID_FABRIC, ID_COLOR, ID_PRINT, ID_PLACEMENT, ID_STATUS_COLOR, ID_STATUS_PRINT, DATE_STATUS_COLOR, DATE_STATUS_PRINT, CONSUMPTION) values (${idProduct}, ${idFabric}, ${idColor}, ${idPrint}, ${placement}, ${onCreateStatus}, ${onCreateStatus}, '${shortDate}', '${shortDate}', ${consumption})`;
+      let formattedEntryDate = getFormattedDate(entryDate);
+      let formattedWarehouseEntryDate = getFormattedDate(warehouseEntryDate);
+      let formattedShippingDate = getFormattedDate(shippingDate);
       
-      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+      let stringQuery = `INSERT INTO COMBO_FABRIC (ID_PRODUCT, ID_FABRIC, ID_PLACEMENT,
+                               CONSUMPTION,
+                               ID_COUNTRY_DESTINATION, ENTRY_DATE, WAREHOUSE_ENTRY_DATE, 
+                               SHIPPING_DATE, ID_SHIPPING)
+                               VALUES (${idProduct}, ${idFabric}, ${placement}, ${consumption}, 
+                                ${idCountryDestination},
+                                STR_TO_DATE(${formattedEntryDate}, '%d,%m,%Y'), 
+                                STR_TO_DATE(${formattedWarehouseEntryDate}, '%d,%m,%Y'),
+                                STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping})`;
+                          
+      con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
         return reject(err);
       }
+      console.log(rows);
+      await prints.map(c => {
+        savePrintFabricCombo(rows.insertId,c);
+      });
+      await colors.map(c => {
+        saveColorFabricCombo(rows.insertId,c);
+      });
       resolve(rows);
     });
   });
@@ -1102,3 +1205,5 @@ module.exports.getMerchantClothingSizeCurve = getMerchantClothingSizeCurve;
 module.exports.getMerchantDenimSizeCurve = getMerchantDenimSizeCurve;
 module.exports.getMerchantShoesSizeCurve = getMerchantShoesSizeCurve;
 module.exports.updateProduct = updateProduct;
+module.exports.saveColorFabricCombo = saveColorFabricCombo;
+module.exports.savePrintFabricCombo = savePrintFabricCombo;

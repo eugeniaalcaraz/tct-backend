@@ -38,9 +38,8 @@ module.exports = class ImpactaDataSheet {
               await validateIdRise(data.idTipology);
             }
             await findCountry(data.idCountry);
-            await findShippingType(data.idShipping);
+            //await findShippingType(data.idShipping);
             await findTIPOLOGY(data.idTipology);
-            await findStatus(data.idModeling);
             await findCollection(data.idCollection, data.idMerchant);
             await findDesigner(data.idDesigner, data.idMerchant);
             idSizeCurve = 1;//await saveSizeCurve(data.sizeCurve, data.idMerchant);
@@ -84,6 +83,8 @@ module.exports = class ImpactaDataSheet {
 
 
 async function handleFabricCombo(savedFabrics, idProduct, data) {
+  let idCombo;
+    console.log(savedFabrics)
     let fabricCombo = savedFabrics.map((fab, i) =>
       merchantRepository.saveComboFabric(
         fab.idFabric,
@@ -93,27 +94,37 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
         fab.colorCount,
         fab.placement,
         idProduct,
-        fab.consumption
+        fab.consumption,
+        fab.idCountryDestination,
+        fab.entryDate,
+        fab.warehouseEntryDate,
+        fab.shippingDate,
+        fab.idShipping,
+        fab.colors,
+        fab.prints
       )
     );
-    Promise.all(fabricCombo).then(async (results) => {
-      let aviosCombo = data.avios.map((av) =>
-        merchantRepository.saveComboAvio(
-          av.idAvio,
-          av.idColor,
-          idProduct,
-          1 //status pendiente
-        )
-      );
-      Promise.all(aviosCombo)
-        .then((results) => {
-          return true;
-        })
-        .catch((err) => {
-          console.log(err)
-          throw new Error("Error - Algo salio mal al guardar los avios");
+         Promise.all(fabricCombo).then(async (results) => {
+          let aviosCombo = data.avios.map((av) =>
+            merchantRepository.saveComboAvio(
+              av.idAvio,
+              av.idCountryDestination,
+              idProduct,
+              av.entryDate,
+              av.warehouseEntryDate,
+              av.shippingDate,
+              av.idShipping,
+              av.colors));
+
+          Promise.all(aviosCombo)
+            .then((results) => {
+              return true;
+            })
+            .catch((err) => {
+              console.log(err)
+              throw new Error("Error - Algo salio mal al guardar los avios");
+            });
         });
-    });
 }
 
 async function getProduct(idProduct) {
@@ -202,6 +213,8 @@ async function saveFabrics(data) {
       if(element.idFabric > 0){ //Tela existente
         var fabric = await merchantRepository.getFabricFromId(element.idFabric, data.idMerchant);
         if(fabric.length > 0){//Encontre la tela
+          console.log("serp");
+          console.log(element.prints);
           promises.push(
             merchantRepository.saveFiberPercentage(element, element.idFabric)
             .then(result => {
@@ -213,7 +226,14 @@ async function saveFabrics(data) {
                   idPrint: element.idPrint,
                   printDescription: element.printDescription,
                   colorCount: element.colorCount,
-                  consumption: element.consumption
+                  consumption: element.consumption,
+                  colors: element.colors,
+                  prints: element.prints,
+                  idCountryDestination: element.idCountryDestination,
+                  entryDate: element.entryDate,
+                  warehouseEntryDate: element.warehouseEntryDate,
+                  shippingDate: element.shippingDate,
+                  idShipping: element.idShipping
                 });
               }
             })
@@ -236,7 +256,14 @@ async function saveFabrics(data) {
                 idPrint: element.idPrint,
                 printDescription: element.printDescription,
                 colorCount: element.colorCount,
-                consumption: element.consumption
+                consumption: element.consumption,
+                colors: element.colors,
+                prints: element.prints,
+                idCountryDestination: element.idCountryDestination,
+                entryDate: element.entryDate,
+                warehouseEntryDate: element.warehouseEntryDate,
+                shippingDate: element.shippingDate,
+                idShipping: element.idShipping
               });
             }
           })
@@ -360,18 +387,15 @@ async function findShippingType(idShippingType) {
 //idCountryDestination
 function validateData(data) {
   validateMerchantBrand(data.idMerchantBrand);
-  validateShippingDate(data.entryDate);
-  validateShippingDate(data.warehouseEntryDate);
+  // validateShippingDate(data.entryDate);
+  // validateShippingDate(data.warehouseEntryDate);
   validateName(data.name);
   validateQuantity(data.quantity);
   validateDetail(data.detail);
-  validateIdMeasurmentTable(data.idMeasurmentTable);
-  validateIdShipping(data.idShipping);
+  // validateIdShipping(data.idShipping);
   validateIdCountry(data.idCountry);
-  validateIdCountry(data.idCountryDestination);
+  // validateIdCountry(data.idCountryDestination);
   validateIdTipology(data.idTipology);
-  validateIdColection(data.idCollection);
-  validateIdModeling(data.idModeling);
   validateSizeTable(data.sizeCurve);
   validateIdDesigner(data.idDesigner);
   validateCosts(data.cost, data.costInStore);
@@ -446,7 +470,7 @@ function validateProyecta(proyecta){
   if(proyecta === undefined){
     throw new Error("Debe ingresar si el producto es proyecta.");
   }
-  if(proyecta !== 1 && proyecta !== 0){
+  if(proyecta !== true && proyecta !== false){
     throw new Error("Valor proyecta invalido.");
   }
 }
@@ -517,12 +541,6 @@ function validateIdSizeCurve(idSizeCurve) {
   }
   return idSizeCurve;
 }
-function validateIdMeasurmentTable(idMeasurmentTable) {
-  if (idMeasurmentTable === undefined) {
-    throw new Error("Debe ingresar un id de la tabla de medidas.");
-  }
-  return idMeasurmentTable;
-}
 
 function validateIdTipology(idTipology) {
   if (idTipology === undefined) {
@@ -530,16 +548,6 @@ function validateIdTipology(idTipology) {
   }
 }
 
-function validateIdColection(idCollection) {
-  if (idCollection === undefined) {
-    throw new Error("Debe ingresar un id de la coleccion.");
-  }
-}
-function validateIdModeling(idModeling) {
-  if (idModeling === undefined) {
-    throw new Error("Debe ingresar un id de modelo.");
-  }
-}
 function validateDetail(detail) {
 
   if (detail === undefined || detail.length <= 500) {
