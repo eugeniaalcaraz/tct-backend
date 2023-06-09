@@ -4,6 +4,55 @@ module.exports = class ImpactaMerchant {
     constructor () {
 
     }
+
+    async getProduct(idProduct) {
+        try {
+          let productData = await MerchantRepository.getProduct(idProduct);
+          let cmbFab = [];
+          let cmbColors = [];
+          let cmbPrints = [];
+          let cmbAvios = [];
+          console.log(productData);
+          let comboFabric = await MerchantRepository.getComboFabric(idProduct);
+      
+          await Promise.all(comboFabric.map(async (comboFab) => {
+            let comboColorsPromise = MerchantRepository.getComboFabricColors(comboFab.Id);
+            let comboPrintsPromise = MerchantRepository.getComboFabricPrints(comboFab.Id);
+      
+            let comboColors = await comboColorsPromise;
+            let comboPrints = await comboPrintsPromise;
+
+            cmbFab.push(comboFab);
+            cmbColors.push(comboColors);
+            cmbPrints.push(comboPrints);
+        
+          }));
+
+          let comboAvio = await MerchantRepository.getComboAvio(idProduct);
+          await Promise.all(comboAvio.map(async (combAv) => {
+            let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.Id);
+
+            let comboAviosPromise = await comboAviosColorsPromise;
+            cmbAvios.push(comboAviosPromise);
+          }))
+
+          return {
+            BasicInfo : productData,
+            Fabrics: cmbFab,
+            ComboFabricColors: cmbColors,
+            ComboFabricPrints: cmbPrints,
+            Avios: comboAvio,
+            ComboColorAvios: cmbAvios,
+          };
+
+        } catch (err) {
+          throw new Error("Error - Something went wrong while getting the product: " + err.message);
+        }
+      }
+      
+      
+
+
     merchantExists({idMerchant}){
         return new Promise(function(resolve, reject){
             MerchantRepository.getMerchant({idMerchant}).then(result => {
@@ -210,7 +259,7 @@ module.exports = class ImpactaMerchant {
             console.log("Recorriendo cada tela")
             console.log(element);
             promises.push(new Promise(async function(resolve, innerReject){
-              var fabricComposition = await MerchantRepository.getFabricComposition(element.ID);
+              var fabricComposition = await MerchantRepository.getFabricComposition(element.Id);
               result.push({IdFabric: element.Id, Description: element.Description, Weight: element.Weight, Composition: fabricComposition})
               resolve();
             }));
@@ -263,9 +312,9 @@ module.exports = class ImpactaMerchant {
     getMerchantSizeCurves(){
         return new Promise(async function(resolve, reject){
             const result = [];
-            result.push({ shoes: await MerchantRepository.getMerchantShoesSizeCurve() });
-            result.push({ denim: await MerchantRepository.getMerchantDenimSizeCurve() });
-            result.push({ clothes: await MerchantRepository.getMerchantClothingSizeCurve()});
+            result.push({ Shoes: await MerchantRepository.getMerchantShoesSizeCurve() });
+            result.push({ Denim: await MerchantRepository.getMerchantDenimSizeCurve() });
+            result.push({ Clothes: await MerchantRepository.getMerchantClothingSizeCurve()});
             resolve(result);
 
         });

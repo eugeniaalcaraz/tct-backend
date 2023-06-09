@@ -34,14 +34,17 @@ function getBalanceData({ idMerchant, idSeason }) {
     let sqlString =
         `SELECT product.ID IdProduct, 
                 product.ID_INSPECTION IdInspection, 
-                product.ENTRY_DATE ShippingDate, 
-                DATEDIFF(now(),product.ENTRY_DATE) DaysBeforeShipping 
+                cb.ENTRY_DATE ShippingDate, 
+                DATEDIFF(now(),cb.ENTRY_DATE) DaysBeforeShipping 
         FROM SEASON season,
-             PRODUCT PRODUCT 
-        WHERE season.ID = product.ID_SEASON AND product.ID_MERCHANT = ${idMerchant}
-        and product.ID_SEASON = ${idSeason}`;
+             PRODUCT product,
+             COMBO_FABRIC cf
+        WHERE season.ID = product.ID_SEASON 
+        AND cf.ID_PRODUCT = product.ID 
+        AND product.ID_MERCHANT = ${idMerchant}
+        AND product.ID_SEASON = ${idSeason}`;
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString.toUpperCase(), function (err, rows, fields) {
+        pool.query(sqlString, function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 return reject(err);
@@ -88,14 +91,10 @@ function getBalanceDatesConfig({ idMerchant }) {
 
 function getShippingDates({ idMerchant, idSeason, month, year }) {
     let stringQuery =
-        "SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate, p.NUMBER ProductNumber  FROM PRODUCT p INNER JOIN SEASON s ON p.ID_SEASON = s.ID WHERE s.ID = " +
-        idSeason +
-        " AND p.ID_MERCHANT = " +
-        idMerchant +
-        " AND MONTH(p.ENTRY_DATE) = " +
-        month +
-        " AND YEAR(p.ENTRY_DATE) = " +
-        year;
+        `SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate, 
+        pr.NUMBER ProductNumber FROM COMBO_FABRIC p INNER JOIN PRODUCT pr ON p.ID_PRODUCT = pr.ID
+        INNER JOIN SEASON s ON pr.ID_SEASON = s.ID WHERE s.ID = ${idSeason}
+        AND pr.ID_MERCHANT = ${idMerchant} AND MONTH(p.ENTRY_DATE) = ${month} AND YEAR(p.ENTRY_DATE) = ${year}`;
     console.log(stringQuery);
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery, function (err, rows, fields) {
@@ -110,7 +109,7 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
 
 function getProductsStatus({ idMerchant, idSeason }) {
     let stringQuery =
-        "SELECT I.DESCRIPTION, COUNT(*) ProducsPerSeason FROM PRODUCT P INNER JOIN INSPECTION I ON I.ID = P.ID_INSPECTION WHERE P.ID_MERCHANT = " +
+        "SELECT I.DESCRIPTION Description, COUNT(*) ProducsPerSeason FROM PRODUCT P INNER JOIN INSPECTION I ON I.ID = P.ID_INSPECTION WHERE P.ID_MERCHANT = " +
         idMerchant +
         " AND P.ID_SEASON = " +
         idSeason +
@@ -118,6 +117,7 @@ function getProductsStatus({ idMerchant, idSeason }) {
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
+                console.log(err)
                 return reject(err);
             }
 
@@ -162,13 +162,13 @@ function getDataForMarginCalculations(idMerchant, idSeason) {
 
 function getTopProductsWithStatus(idMerchant, idSeason, idStatus, limit) {
     let stringQuery =
-        "select PRODUCT.NAME Name from product PRODUCT where PRODUCT.ID_MERCHANT = " +
+        "select PRODUCT.NAME Name from PRODUCT where PRODUCT.ID_MERCHANT = " +
         idMerchant +
         " AND ID_STATUS = 2 AND ID_SEASON = " +
         idSeason +
         " limit 6";
     return new Promise(function (resolve, reject) {
-        pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+        pool.query(stringQuery, function (err, rows, fields) {
             if (err) {
                 return reject(err);
             }
@@ -270,15 +270,16 @@ function getAllSKUsAndPieces(idMerchant, idSeason) {
 }
 
 function getPendantAvios(idSeason) {
+    console.log("getting pendant avios")
     let sqlString = `
-        select 
-        count(ca.id_product) cantidadSinAprobar
+        SELECT 
+        COUNT(ca.ID_PRODUCT) cantidadSinAprobar
         FROM
-        product p,
+        PRODUCT p,
         COMBO_AVIO ca,
-        season ss
-        where
-        p.ID = ca.id_product and
+        SEASON ss
+        WHERE
+        p.ID = ca.ID_PRODUCT and
         ca.ID_STATUS = 1 AND
         ss.ID = p.ID_SEASON AND
         p.ID_SEASON = ${idSeason}
@@ -287,9 +288,10 @@ function getPendantAvios(idSeason) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return sqlString;
             }
-
+            console.log(rows);
             resolve(rows);
         });
     });
@@ -433,6 +435,7 @@ function getTotalRequestedQualities(idSeason) {
 }
 
 async function getPendantApprovals(idMerchant, idSeason) {
+    console.log("getting approvals")
     return new Promise(function (resolve, reject) {
         let pendantAvios;
         let pendantColorsAndPrints;

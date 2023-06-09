@@ -21,11 +21,8 @@ module.exports = class ImpactaDataSheet {
     try {
       return new Promise(async function (resolve, reject) {
         let idProduct;
-        let idSizeCurve;
         if (data.idExistingProduct != 0) {
           idProduct = await getProduct(data.idExistingProduct);
-          //idProduct = data.idExistingProduct;
-          idSizeCurve = data.idSizeCurve;//??
           try {
             validateComboData(data);
           } catch (exception) {
@@ -42,7 +39,8 @@ module.exports = class ImpactaDataSheet {
             await findTIPOLOGY(data.idTipology);
             await findCollection(data.idCollection, data.idMerchant);
             await findDesigner(data.idDesigner, data.idMerchant);
-            idSizeCurve = 1;//await saveSizeCurve(data.sizeCurve, data.idMerchant);
+            idSizeCurve = await saveSizeCurve(data.sizeCurve, data.sizeCurveType);
+            console.log("Id size curve = " + idSizeCurve);
           } catch (exception) {
             reject(exception.toString());
             return;
@@ -60,7 +58,8 @@ module.exports = class ImpactaDataSheet {
             merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
           }
         }
-        await handleFabricCombo(savedFabrics, idProduct, data);
+        //pasar sizeCurve
+        await handleFabricCombo(savedFabrics, idProduct, data, idSizeCurve);
         resolve(true);
       });
     } catch (exception) {
@@ -82,7 +81,7 @@ module.exports = class ImpactaDataSheet {
 };
 
 
-async function handleFabricCombo(savedFabrics, idProduct, data) {
+async function handleFabricCombo(savedFabrics, idProduct, data, idSizeCurve) {
   let idCombo;
     console.log(savedFabrics)
     let fabricCombo = savedFabrics.map((fab, i) =>
@@ -101,7 +100,8 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
         fab.shippingDate,
         fab.idShipping,
         fab.colors,
-        fab.prints
+        fab.prints,
+        idSizeCurve
       )
     );
          Promise.all(fabricCombo).then(async (results) => {
@@ -129,7 +129,7 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
 
 async function getProduct(idProduct) {
   try {
-    const result = await merchantRepository.getProuct(idProduct);
+    const result = await merchantRepository.getProduct(idProduct);
     if (result.length > 0) {
       return result;
     } else {
@@ -208,8 +208,8 @@ async function saveFabrics(data) {
   let fabrics = [];
   try {
     let promises = [];
-    for (let i = 0; i < data.combos.length; i++) {
-      let element = data.combos[i];
+    for (let i = 0; i < data.telas.length; i++) {
+      let element = data.telas[i];
       if(element.idFabric > 0){ //Tela existente
         var fabric = await merchantRepository.getFabricFromId(element.idFabric, data.idMerchant);
         if(fabric.length > 0){//Encontre la tela
@@ -281,12 +281,18 @@ async function saveFabrics(data) {
   }
 }
 
-async function saveSizeCurve(sizeCurve, idMerchant) {
+async function saveSizeCurve(sizeCurve, idSizeCurveType) {
+  console.log("hola")
+  let result;
   try {
-    const result = await merchantRepository.saveSizeCurve(
-      sizeCurve,
-      idMerchant
-    );
+    if(idSizeCurveType === sizeCurveEnum.shoe){
+      console.log("que");
+       result = await merchantRepository.saveSizeCurveShoes(sizeCurve);
+    }else if(idSizeCurveType === sizeCurveEnum.clothes){
+      result = await merchantRepository.saveSizeCurveClothes(sizeCurve);
+    }else{
+      result = await merchantRepository.saveSizeCurveDenim(sizeCurve);
+    }
     if (result > 0) {
       return result;
     } else {
@@ -441,8 +447,8 @@ function validateExtendedSize(idExtendedSize){
 }
 
 function validateComboData(data) {
-  validateFabric(data.combos);
-  validateFiberComposition(data.combos);
+  validateFabric(data.telas);
+  validateFiberComposition(data.telas);
 }
 
 function validateFabric(fabric) {
@@ -535,9 +541,12 @@ function validateIdCareLabel(idCareLabel) {
   }
   return idCareLabel;
 }
+//todo validar lenght size CUrve
 function validateIdSizeCurve(idSizeCurve) {
   if (idSizeCurve === undefined) {
     throw new Error("Debe ingresar un id de la tabla de la curva de talles.");
+  }else{
+    //if sizecurve type es demin length tal
   }
   return idSizeCurve;
 }

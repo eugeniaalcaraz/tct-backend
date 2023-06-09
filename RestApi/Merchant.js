@@ -305,4 +305,18 @@ router.route("/getMerchantSizeCurves").get((req, res) => {
             res.send(err);
         });
 });
+
+router.route("/getProduct/:IdProduct").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaMerchant");
+    currentBrand
+        .getProduct(req.params.IdProduct)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 module.exports = router;
