@@ -4,7 +4,11 @@ const con = require("../configuration/ConfigurationDB");
 const util = require("util");
 const { get } = require("http");
 const { start } = require("repl");
-
+const sizeCurveEnum = {
+  shoe: 1,
+  clothes: 2,
+  denim: 3
+};
 function getMerchant({ idMerchant }) {
   let stringQuery = `SELECT * FROM merchant where id = ${idMerchant}`;
   return new Promise(function (resolve, reject) {
@@ -156,7 +160,8 @@ function getCountries() {
   });
 }
 
-function getTipologies(IdMerchant, idIndustry) {
+function getTipologies({idIndustry}) {
+  console.log("buscando tipologias")
   let stringQuery = `SELECT ID Id, NAME Description, CODE Code, WEIGHT Weight FROM TIPOLOGY WHERE ID_INDUSTRY = ${idIndustry}`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
@@ -365,7 +370,6 @@ function getFabricFromId(idFabric, idMerchant) {
 }
 
 async function getFabrics(idMerchant) {
-  console.log("hi")
   let stringQuery =
     "SELECT ID Id, DESCRIPTION Description, WEIGHT Weight, ID_MERCHANT IdMerchant FROM FABRIC WHERE ID_MERCHANT = " +
     idMerchant +
@@ -386,6 +390,8 @@ async function getFabricComposition(idFabric) {
     "select f.DESCRIPTION Description, pf.PERCENTAGE Percentage from PERCENTAGE_FIBER pf inner join FIBER f on pf.ID_FIBER = f.ID where pf.ID_FABRIC = " +
     idFabric;
   return new Promise(function (resolve, reject) {
+    console.log("Buscando composición de la tela " +  idFabric);
+    console.log(stringQuery);
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -410,6 +416,7 @@ function getFabric(description, weight) {
   let stringQuery = `SELECT * FROM FABRIC WHERE DESCRIPTION = '${description}' AND WEIGHT = ${weight}`;
 
   return new Promise(function (resolve, reject) {
+    console.log(stringQuery);
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -424,10 +431,14 @@ function saveNewFabric(idMerchant, description, weight) {
   let idFab;
   return new Promise(function (resolve, reject) {
     getFabric(description, weight).then((res) => {
+      console.log("Resultado de buscar tela existente")
+      console.log(res);
       if (res.length > 0) {//Si ya existe, devuelve el id existente
+        console.log("tela ya existe")
         idFab = res[0].ID;
         resolve(idFab);
       } else {
+        console.log("Guardando tela")
         insertFabric(description, weight, idMerchant).then((res) => {
           idFab = res;
           resolve(idFab);
@@ -538,6 +549,7 @@ async function saveFabric(fabric, idMerchant, numFab) {
 }
 
 async function saveNewFabricInternal(idMerchant, fabric) {
+  console.log("la tela no existia");
   return new Promise(function (resolve, reject) {
     saveNewFabric(idMerchant, fabric.description, fabric.weight).then(
       (result) => {
@@ -594,7 +606,8 @@ function findDesigner(idDesigner, idMerchant) {
   });
 }
 function saveSizeCurveShoes(sizeCurve) {
-    console.log("alo size curve")
+    console.log("alo size curve");
+    console.log(sizeCurve);
   let id;
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO SIZE_CURVE_SHOES ( THIRTYFOUR,
@@ -616,7 +629,8 @@ function saveSizeCurveShoes(sizeCurve) {
  });
 }
 function saveSizeCurveDenim(sizeCurve) {
-  console.log("alo size curve")
+  console.log("alo size curve");
+  console.log(sizeCurve)
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_DENIM (TWENTYTHREE,
@@ -689,6 +703,7 @@ async function saveFiberPercentager(idFiber, percentage, idFabric) {
 }
 
 function savePicture(picture, idProuct, isMain, pictNum) {
+  console.log("Guardando pic")
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO product_picture (PATH, ID_PRODUCT, IS_MAIN) VALUES ('${picture}', ${idProuct}, ${isMain})`;
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
@@ -703,27 +718,105 @@ function savePicture(picture, idProuct, isMain, pictNum) {
 function saveProduct(prod, prodNumber) {
   return new Promise(function (resolve, reject) {
     //let shipping = ; //TODO MG: ?? que es el 3?
-    let idRise = prod.idRise === undefined ? null : prod.idRise;
-    let stringQuery = `INSERT INTO PRODUCT (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_TIPOLOGY, 
-                       ID_SEASON, ID_COUNTRY, 
-                       ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND, 
-                       YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE,
-                       SIZE_CURVE_TYPE, ID_DEPARTMENT) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
+    let extendedSize = prod.extendedSize ? 1 : 0;
+    let idRise = prod.idRise === undefined || 0 ? null : prod.idRise;
+    let date = getFormattedDateProd(prod.modelingDate);
+    let sampleDate = getFormattedDateProd(prod.sampleDate);
+    let stringQuery = `
+    INSERT INTO PRODUCT (NAME, QUANTITY, WEIGHT, DETAIL, ID_INSPECTION, ID_MERCHANT, ID_TIPOLOGY,
+                         ID_SEASON, ID_COUNTRY,
+                         ID_DESIGNER, ID_STATUS, COST, COST_IN_STORE, ID_SUPPLIER, ID_INDUSTRY, ID_MERCHANT_BRAND,
+                         YEAR, PROYECTA, ID_CONCEPT, ID_LINE, ID_BODY_FIT, ID_RISE, NUMBER, EXTENDED_SIZE,
+                         SIZE_CURVE_TYPE, FABRIC_CODE, ID_STATUS_MEASUREMENT_TABLE, MEASUREMENT_TABLE, ID_MODELING_STATUS,
+                         MODELING_DATE, ID_SAMPLE_STATUS, SAMPLE_DATE) VALUES ('${prod.name}', ${prod.quantity},${prod.weight},'${prod.detail === undefined ? "" : prod.detail}',
                        1, ${prod.idMerchant},${prod.idTipology},${prod.idSeason},${prod.idCountry},
                        ${prod.idDesigner}, 1,${prod.cost === undefined ? 0 : prod.cost},
                        ${prod.costInStore === undefined ? 0 : prod.costInStore},${prod.idSupplier},
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta === true ? 1 : 0}, ${prod.idConcept}, ${prod.idLine},
-                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${prod.extendedSize},${prod.sizeCurveType}, ${prod.idDepartment})`;//order
+                       ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${extendedSize},${prod.sizeCurveType},'${prod.fabricCode}', ${prod.idStatusMeasurmentTable},
+                       '${prod.measurmentTable}', ${prod.idModelingStatus}, ${date}, ${prod.idSampleStatus}, ${sampleDate})`;//order
+    console.log(stringQuery);
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       resolve(rows.insertId);
     });
   });
 }
+function getFormattedDateProd(strDate) {
+  let date = new Date(strDate);
+  let year = date.getUTCFullYear();
+  let month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // Agrega un cero inicial si el mes es de un solo dígito
+  let day = date.getUTCDate().toString().padStart(2, '0'); // Agrega un cero inicial si el día es de un solo dígito
+  return `'${year}-${month}-${day}'`;
+}
+function deleteComboFabricColor(idProd) {
+  console.log("eliminadno producto y data")
+ return new Promise(function (resolve, reject) {
+   let stringQuery = `
+   DELETE FROM COMBO_FABRIC_COLOR WHERE ID_COMBO_FABRIC IN (SELECT ID FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd}); `;
+     console.log(stringQuery.toUpperCase());
+     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+         if (err) {
+           return reject(err);
+         }
+         resolve(rows.affectedRows === 1);
+       });
+     });
+ 
+}
+function deleteComboFabricPrint(idProd) {
+  console.log("eliminadno producto y data")
+ return new Promise(function (resolve, reject) {
+   let stringQuery = `
+   DELETE FROM COMBO_FABRIC_PRINT WHERE ID_COMBO_FABRIC IN (SELECT ID FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd});`;
+     console.log(stringQuery.toUpperCase());
+     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+         if (err) {
+           return reject(err);
+         }
+         resolve(rows.affectedRows === 1);
+       });
+     });
+ 
+}
+
+function deleteComboFabric(idProd) {
+  console.log("eliminadno producto y data")
+ return new Promise(function (resolve, reject) {
+   let stringQuery = `
+   DELETE FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd};`;
+     console.log(stringQuery.toUpperCase());
+     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+         if (err) {
+           return reject(err);
+         }
+         resolve(rows.affectedRows === 1);
+       });
+     });
+ 
+}
+function deleteProduct(idProd) {
+  console.log("eliminadno producto y data")
+ return new Promise(function (resolve, reject) {
+   let stringQuery = `
+   DELETE FROM PRODUCT WHERE ID = ${idProd}`;
+
+     console.log(stringQuery.toUpperCase());
+     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
+         if (err) {
+           return reject(err);
+         }
+         resolve(rows.affectedRows === 1);
+       });
+     });
+ 
+}
+ 
 //TODO MG: Que eran esos 1
-function updateProduct(prod, prodNumber) {
+function updateProductOld(prod, prodNumber) {
     return new Promise(function (resolve, reject) {
       let stringQuery = 'UPDATE PRODUCT SET ';
         if (prod.name !== undefined) {
@@ -898,36 +991,56 @@ function getMerchantShoeMaterials(idMerchant){
 function getProduct(idProduct) {
   console.log("Getting product data");
   return new Promise(function (resolve, reject) {
-    let stringQuery = `SELECT ID Id,
-                              NAME Name,
-                              QUANTITY Quantity,
-                              WEIGHT Weight,
-                              DETAIL Detail,
-                              ID_INSPECTION IdInspection,
-                              ID_MERCHANT IdMerchant,
-                              ID_SEASON IdSeason,
-                              ID_COUNTRY IdCountry,
-                              ID_TIPOLOGY IdTipology,
-                              ID_DESIGNER IdDesigner,
-                              ID_STATUS IdStatus,
-                              COST Cost,
-                              COST_IN_STORE CostInStore,
-                              ID_SUPPLIER IdSupplier,
-                              ID_LINE IdLine,
-                              EXTENDED_SIZE ExtendedSize,
-                              ID_INDUSTRY IdIndustry,
-                              ID_BODY_FIT IdBodyFit,
-                              ID_RISE IdRise,
-                              NUMBER ProductNumber,
-                              ID_MERCHANT_BRAND IdMerchantBrand,
-                              YEAR Year,
-                              PROYECTA Proyecta,
-                              ID_CONCEPT IdConcept,
-                              ID_SIZE_CURVE IdSizeCurve,
-                              SIZE_CURVE_TYPE SizeCurveType,
-                              ID_DEPARTMENT IdDepartment
-                              FROM PRODUCT
-                              WHERE ID = ${idProduct}`;
+    let stringQuery = `SELECT ID AS id,
+    NAME AS name,
+    QUANTITY AS quantity,
+    WEIGHT AS weight,
+    DETAIL AS detail,
+    ID_INSPECTION AS idinspection,
+    ID_MERCHANT AS idmerchant,
+    ID_SEASON AS idseason,
+    ID_COUNTRY AS idcountry,
+    ID_TIPOLOGY AS idtipology,
+    ID_DESIGNER AS iddesigner,
+    ID_STATUS AS idstatus,
+    COST AS cost,
+    COST_IN_STORE AS costinstore,
+    ID_SUPPLIER AS idsupplier,
+    ID_LINE AS idline,
+    EXTENDED_SIZE AS extendedsize,
+    ID_INDUSTRY AS idindustry,
+    ID_BODY_FIT AS idbodyfit,
+    ID_RISE AS idrise,
+    NUMBER AS productnumber,
+    ID_MERCHANT_BRAND AS idmerchantbrand,
+    YEAR AS year,
+    PROYECTA AS proyecta,
+    ID_CONCEPT AS idconcept,
+    SIZE_CURVE_TYPE AS sizecurvetype,
+    ID_SEASON AS idseason,
+    ID_COUNTRY AS idcountry,
+    ID_TIPOLOGY AS idtipology,
+    ID_DESIGNER AS iddesigner,
+    ID_STATUS AS idstatus,
+    COST AS cost,
+    COST_IN_STORE AS costinstore,
+    ID_LINE AS idline,
+    EXTENDED_SIZE AS extendedsize,
+    ID_INDUSTRY AS idindustry,
+    ID_BODY_FIT AS idbodyfit,
+    ID_RISE AS idrise,
+    NUMBER AS productnumber,
+    ID_MERCHANT_BRAND AS idmerchantbrand,
+    YEAR AS year,
+    PROYECTA AS proyecta,
+    ID_STATUS_MEASUREMENT_TABLE AS idstatusmeasurementtable,
+    MEASUREMENT_TABLE AS measurementtable,
+    ID_MODELING_STATUS AS idmodelingstatus,
+    MODELING_DATE AS modelingdate,
+    ID_SAMPLE_STATUS AS idsamplestatus,
+    SAMPLE_DATE AS sampledate
+    FROM PRODUCT
+    WHERE ID = ${idProduct}`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
         console.log(err);
@@ -947,36 +1060,54 @@ function getFormmatedDate() {
     return `${year}-${month}-${day}`.toString();
   }
 
-  function saveColorFabricCombo(idComboFabric, idColor, idSizeCurve) {
-
-    
+  async function saveColorFabricCombo(idComboFabric, idColor, sizeCurve, sizeCurveType, idStatus) {
+    console.log("size curve" +  sizeCurve)
+    console.log(`El id size curve type ${sizeCurveType}`);
+    let idSizeCurve = await saveSizeCurve(sizeCurve, sizeCurveType);
+    console.log(`El id size curve es ${idSizeCurve}`);
     return new Promise(function (resolve, reject) {
-      let stringQuery = `INSERT INTO COMBO_FABRIC_COLOR (ID_COMBO_FABRIC, ID_COLOR, ID_STATUS, ID_SIZE_CURVE) VALUES (${idComboFabric},${idColor},1,${idSizeCurve})`;
+      let stringQuery = `INSERT INTO COMBO_FABRIC_COLOR (ID_COMBO_FABRIC, ID_COLOR, ID_STATUS, ID_SIZE_CURVE) VALUES (${idComboFabric},${idColor},${idStatus},${idSizeCurve})`;
   
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
+          console.log(err)
           return reject(err);
         }
-  
+        console.log(rows)
         resolve(rows);
       });
     });
   }
-  function savePrintFabricCombo
-  (idComboFabric, idPrint, idSizeCurve) {
-
+  async function savePrintFabricCombo
+  (idComboFabric, idPrint, sizeCurve, sizeCurveType, idStatus) {
+    let idSizeCurve = await saveSizeCurve(sizeCurve, sizeCurveType);
     
+    console.log(`El id size curve es ${idSizeCurve}`);
     return new Promise(function (resolve, reject) {
-      let stringQuery = `INSERT INTO COMBO_FABRIC_PRINT (ID_COMBO_FABRIC, ID_PRINT, ID_STATUS, ID_SIZE_CURVE) VALUES (${idComboFabric},${idPrint},1,${idSizeCurve})`;
+      let stringQuery = `INSERT INTO COMBO_FABRIC_PRINT (ID_COMBO_FABRIC, ID_PRINT, ID_STATUS, ID_SIZE_CURVE) VALUES (${idComboFabric},${idPrint},${idStatus},${idSizeCurve})`;
   
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
+          console.log(err);
           return reject(err);
         }
-  
+        console.log(rows);
         resolve(rows);
       });
     });
+  }
+
+  async function saveSizeCurve(sizeCurve, idSizeCurveType){
+    console.log("buscando size curve type " + idSizeCurveType);
+    console.log(sizeCurve);
+    if(idSizeCurveType === sizeCurveEnum.shoe){
+      console.log("que");
+      return await saveSizeCurveShoes(sizeCurve);
+    }else if(idSizeCurveType === sizeCurveEnum.clothes){
+      return await saveSizeCurveClothes(sizeCurve);
+    }else{
+      return await saveSizeCurveDenim(sizeCurve);
+    }
   }
 
 function saveComboAvio(idAvio, 
@@ -986,6 +1117,8 @@ function saveComboAvio(idAvio,
                        warehouseEntryDate,
                        shippingDate,
                        idShipping,
+                       quantity,
+                       idStatus,
                        colors) {
   let formattedEntryDate = getFormattedDate(entryDate);
   let formattedWarehouseEntryDate = getFormattedDate(warehouseEntryDate);
@@ -994,10 +1127,10 @@ function saveComboAvio(idAvio,
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO COMBO_AVIO (ID_AVIO, ID_PRODUCT,
                        ID_COUNTRY_DESTINATION,	ENTRY_DATE,	WAREHOUSE_ENTRY_DATE,
-                       	SHIPPING_DATE,	ID_SHIPPING) VALUES (${idAvio},${idProduct},
+                       	SHIPPING_DATE,	ID_SHIPPING, QUANTITY, ID_STATUS) VALUES (${idAvio},${idProduct},
                         ${idCountryDestination}, STR_TO_DATE(${formattedEntryDate}, '%d,%m,%Y'), 
                         STR_TO_DATE(${formattedWarehouseEntryDate}, '%d,%m,%Y'),
-                        STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping})`;
+                        STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping}, ${quantity}, ${idStatus})`;
     console.log(stringQuery);                      
     con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
@@ -1007,17 +1140,17 @@ function saveComboAvio(idAvio,
       console.log("fale");
       console.log(rows);
       await colors.map(c => {
-        saveComboAvioColor(rows.insertId,c);
+        saveComboAvioColor(rows.insertId,c.idColor, c.idStatus);
       });
       resolve(rows);
     });
   });
 }
 
-async function saveComboAvioColor(idComboAvio, idColor) {
+async function saveComboAvioColor(idComboAvio, idColor, idStatus) {
 return new Promise(function (resolve, reject) {
 let stringQuery = `INSERT INTO COMBO_AVIO_COLOR (ID_COMBO_AVIO, ID_COLOR,
-                   ID_STATUS) VALUES (${idComboAvio},${idColor}, 1)`;
+                   ID_STATUS) VALUES (${idComboAvio},${idColor}, ${idStatus})`;
 console.log(stringQuery);
 con.query(stringQuery, function (err, rows, fields) {
 if (err) {
@@ -1070,10 +1203,6 @@ function savePrint(description, colorCount) {
 
 function saveComboFabric(
   idFabric,
-  idColor,
-  idPrint,
-  printDescription,
-  colorCount,
   placement,
   idProduct,
   consumption,
@@ -1084,14 +1213,15 @@ function saveComboFabric(
   idShipping,
   colors,
   prints,
-  idSizeCurve
+  idSizeCurveType, 
+  quantity,
+  idStatus
 ) {
+  console.log("save combo fabric");
+  console.log(idSizeCurveType);
   return new Promise(function (resolve, reject) {
-    savePrint(printDescription, colorCount).then((result) => {
       insertComboFabric(
         idFabric,
-        idColor,
-        idPrint,
         placement,
         idProduct, 
         consumption,
@@ -1102,13 +1232,15 @@ function saveComboFabric(
         idShipping,
         colors,
         prints,
-        idSizeCurve
+        idSizeCurveType,
+        quantity,
+        idStatus
       ).then((result) => {
+        console.log("resolviendo fabrics 2")
         console.log(result)
         resolve(result);
       });
     });
-  });
 }
 
 
@@ -1123,8 +1255,6 @@ function getDateFormatted(){
 
 function insertComboFabric(
   idFabric,
-  idColor,
-  idPrint,
   placement,
   idProduct,
   consumption,
@@ -1135,7 +1265,9 @@ function insertComboFabric(
   idShipping, 
   colors,
   prints,
-  idSizeCurve
+  idSizeCurveType,
+  quantity,
+  idStatus
 ) {
     let currentDate = new Date();
     let year = currentDate.getFullYear();
@@ -1152,12 +1284,12 @@ function insertComboFabric(
       let stringQuery = `INSERT INTO COMBO_FABRIC (ID_PRODUCT, ID_FABRIC, ID_PLACEMENT,
                                CONSUMPTION,
                                ID_COUNTRY_DESTINATION, ENTRY_DATE, WAREHOUSE_ENTRY_DATE, 
-                               SHIPPING_DATE, ID_SHIPPING)
+                               SHIPPING_DATE, ID_SHIPPING, QUANTITY, ID_STATUS)
                                VALUES (${idProduct}, ${idFabric}, ${placement}, ${consumption}, 
                                 ${idCountryDestination},
                                 STR_TO_DATE(${formattedEntryDate}, '%d,%m,%Y'), 
                                 STR_TO_DATE(${formattedWarehouseEntryDate}, '%d,%m,%Y'),
-                                STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping})`;
+                                STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping}, ${quantity}, ${idStatus})`;
                           
       con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
@@ -1165,11 +1297,20 @@ function insertComboFabric(
       }
       console.log(rows);
       await prints.map(c => {
-        savePrintFabricCombo(rows.insertId,c,idSizeCurve);
+        console.log("cada print");
+        console.log(c);
+        savePrint(c.nombre, c.cantidadColor).then(r => {
+          console.log("Resultado guardado print");
+          console.log(r);
+          savePrintFabricCombo(rows.insertId,r.insertId,c.sizeCurve, idSizeCurveType, c.idStatus);
+        });
       });
       await colors.map(c => {
-        saveColorFabricCombo(rows.insertId,c,idSizeCurve);
+        console.log("cada color");
+        console.log(c);
+        saveColorFabricCombo(rows.insertId,c.idColor,c.sizeCurve, idSizeCurveType, c.idStatus);
       });
+      console.log("resolviendo los combos")
       resolve(rows);
     });
   });
@@ -1259,10 +1400,19 @@ function getComboFabric(idProduct) {
 
 return new Promise(function (resolve, reject) {
 let stringQuery = `
-SELECT ID Id,ID_PRODUCT IdProduct, ID_FABRIC IdFabric ,ID_PLACEMENT IdPlacement,
-CONSUMPTION Consumption ,SHIPPING_DATE ShippingDate,WAREHOUSE_ENTRY_DATE WarehouseEntryDate,
-ID_SHIPPING IdShipping, ID_COUNTRY_DESTINATION IdCountryDestination, ENTRY_DATE EntryDate
-FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProduct}`;                      
+SELECT ID AS id,
+ID_FABRIC AS idfabric,
+ID_PLACEMENT AS idplacement,
+CONSUMPTION AS consumption,
+SHIPPING_DATE AS shippingdate,
+WAREHOUSE_ENTRY_DATE AS warehouseentrydate,
+ID_SHIPPING AS idshipping,
+ID_COUNTRY_DESTINATION AS idcountrydestination,
+ENTRY_DATE AS entrydate,
+QUANTITY AS quantity,
+ID_STATUS AS idstatus
+FROM COMBO_FABRIC
+WHERE ID_PRODUCT =${idProduct}`;                      
 con.query(stringQuery, async function (err, rows, fields) {
 if (err) {
 console.log(err);
@@ -1279,10 +1429,19 @@ function getComboAvio(idProduct) {
 
   return new Promise(function (resolve, reject) {
   let stringQuery = `
-  SELECT ID Id,ID_PRODUCT IdProduct, ID_AVIO IdAvio ,SHIPPING_DATE ShippingDate,
-  WAREHOUSE_ENTRY_DATE WarehouseEntryDate,
-  ID_SHIPPING IdShipping, ID_COUNTRY_DESTINATION IdCountryDestination, ENTRY_DATE EntryDate
-  FROM COMBO_AVIO WHERE ID_PRODUCT = ${idProduct}`;                      
+  SELECT
+  ID AS id,
+  ID_AVIO AS idavio,
+  ID_PRODUCT AS idproduct,
+  ID_COUNTRY_DESTINATION AS idcountrydestination,
+  ENTRY_DATE AS entrydate,
+  WAREHOUSE_ENTRY_DATE AS warehouseentrydate,
+  SHIPPING_DATE AS shippingdate,
+  ID_SHIPPING AS idshipping,
+  QUANTITY AS quantity,
+  ID_STATUS AS idstatus
+  FROM COMBO_AVIO
+  WHERE ID_PRODUCT = ${idProduct}`;                      
   con.query(stringQuery, async function (err, rows, fields) {
   if (err) {
   console.log(err);
@@ -1299,15 +1458,18 @@ function getComboAvio(idProduct) {
 
     return new Promise(function (resolve, reject) {
     let stringQuery = `
-    SELECT ID	Id, ID_COMBO_AVIO	IdComboAvio, ID_COLOR IdColor,
-    ID_STATUS	IdStatus, STATUS_DATE IdStatusDate 
-    FROM COMBO_AVIO_COLOR WHERE ID_COMBO_AVIO = ${IdComboAvio}`;                      
+    SELECT ID AS id,
+    ID_COMBO_AVIO AS idcomboavio,
+    ID_COLOR AS idcolor,
+    ID_STATUS AS idstatus,
+    STATUS_DATE AS statusdate
+    FROM COMBO_AVIO_COLOR
+    WHERE ID_COMBO_AVIO = ${IdComboAvio}`;                      
     con.query(stringQuery, async function (err, rows, fields) {
     if (err) {
     console.log(err);
     return reject(err);
     }
-    console.log("bb");
     console.log(rows);
     resolve(rows);
     });
@@ -1317,8 +1479,8 @@ function getComboFabricColors(IdComboFabric) {
 
   return new Promise(function (resolve, reject) {
   let stringQuery = `
-  SELECT ID Id,	ID_COMBO_FABRIC	IdComboFabric, ID_COLOR IdColor,
-  ID_STATUS IdStatus FROM COMBO_FABRIC_COLOR WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
+  SELECT ID id,	ID_COMBO_FABRIC idComboFabric,	ID_COLOR idColor,	ID_STATUS	idStatus,
+  ID_SIZE_CURVE idSizeCurve FROM COMBO_FABRIC_COLOR WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
   con.query(stringQuery, async function (err, rows, fields) {
   if (err) {
   console.log(err);
@@ -1334,8 +1496,8 @@ function getComboFabricColors(IdComboFabric) {
 
     return new Promise(function (resolve, reject) {
     let stringQuery = `
-    SELECT ID Id,	ID_COMBO_FABRIC	IdComboFabric, ID_PRINT IdPrint,
-    ID_STATUS IdStatus FROM COMBO_FABRIC_PRINT WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
+    SELECT ID id,	ID_COMBO_FABRIC idComboFabric,	ID_PRINT idPrint,	ID_STATUS idStatus,	ID_SIZE_CURVE idSizeCurve 
+    FROM COMBO_FABRIC_PRINT WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
     con.query(stringQuery, async function (err, rows, fields) {
     if (err) {
     console.log(err);
@@ -1347,6 +1509,23 @@ function getComboFabricColors(IdComboFabric) {
     });
     });
     }
+
+    function getProductPicture(idProduct) {
+
+      return new Promise(function (resolve, reject) {
+      let stringQuery = `
+      SELECT PATH FROM PRODUCT_PICTURE WHERE ID_PRODUCT = ${idProduct}`;                      
+      con.query(stringQuery, async function (err, rows, fields) {
+      if (err) {
+      console.log(err);
+      return reject(err);
+      }
+      console.log("bb");
+      console.log(rows);
+      resolve(rows);
+      });
+      });
+      }
   
 
 module.exports.getMerchant = getMerchant;
@@ -1396,7 +1575,7 @@ module.exports.insertShoeMaterialProd = insertShoeMaterialProd;
 module.exports.getMerchantClothingSizeCurve = getMerchantClothingSizeCurve;
 module.exports.getMerchantDenimSizeCurve = getMerchantDenimSizeCurve;
 module.exports.getMerchantShoesSizeCurve = getMerchantShoesSizeCurve;
-module.exports.updateProduct = updateProduct;
+//module.exports.updateProduct = updateProduct;
 module.exports.saveColorFabricCombo = saveColorFabricCombo;
 module.exports.savePrintFabricCombo = savePrintFabricCombo;
 module.exports.getComboFabric = getComboFabric;
@@ -1407,3 +1586,8 @@ module.exports.getComboAviosColors = getComboAviosColors;
 module.exports.saveSizeCurveShoes = saveSizeCurveShoes;
 module.exports.saveSizeCurveDenim = saveSizeCurveDenim;
 module.exports.saveSizeCurveClothes = saveSizeCurveClothes;
+module.exports.deleteComboFabricColor = deleteComboFabricColor;
+module.exports.deleteComboFabricPrint = deleteComboFabricPrint;
+module.exports.deleteComboFabric = deleteComboFabric;
+module.exports.deleteProduct = deleteProduct;
+module.exports.getProductPicture = getProductPicture;

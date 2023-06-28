@@ -8,16 +8,18 @@ module.exports = class ImpactaMerchant {
     async getProduct(idProduct) {
         try {
           let productData = await MerchantRepository.getProduct(idProduct);
+          let productPicture = await MerchantRepository.getProductPicture(idProduct);
           let cmbFab = [];
           let cmbColors = [];
           let cmbPrints = [];
           let cmbAvios = [];
           console.log(productData);
+          console.log("buscando los combos")
           let comboFabric = await MerchantRepository.getComboFabric(idProduct);
-      
+          console.log(comboFabric);
           await Promise.all(comboFabric.map(async (comboFab) => {
-            let comboColorsPromise = MerchantRepository.getComboFabricColors(comboFab.Id);
-            let comboPrintsPromise = MerchantRepository.getComboFabricPrints(comboFab.Id);
+            let comboColorsPromise = MerchantRepository.getComboFabricColors(comboFab.id);
+            let comboPrintsPromise = MerchantRepository.getComboFabricPrints(comboFab.id);
       
             let comboColors = await comboColorsPromise;
             let comboPrints = await comboPrintsPromise;
@@ -30,19 +32,20 @@ module.exports = class ImpactaMerchant {
 
           let comboAvio = await MerchantRepository.getComboAvio(idProduct);
           await Promise.all(comboAvio.map(async (combAv) => {
-            let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.Id);
+            let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.id);
 
             let comboAviosPromise = await comboAviosColorsPromise;
             cmbAvios.push(comboAviosPromise);
           }))
 
           return {
-            BasicInfo : productData,
-            Fabrics: cmbFab,
-            ComboFabricColors: cmbColors,
-            ComboFabricPrints: cmbPrints,
-            Avios: comboAvio,
-            ComboColorAvios: cmbAvios,
+            basicInfo : productData,
+            productPicture: productPicture,
+            fabrics: cmbFab,
+            comboFabricColors: cmbColors,
+            comboFabricPrints: cmbPrints,
+            avios: comboAvio,
+            comboColorAvios: cmbAvios
           };
 
         } catch (err) {
@@ -188,9 +191,10 @@ module.exports = class ImpactaMerchant {
        });
     }
 
-    getTipologies({idMerchant, idIndustry}){
+    getTipologies({idIndustry}){
+        console.log("buscnado tipology")
         return new Promise(function(resolve, reject){
-            MerchantRepository.getTipologies(idMerchant, idIndustry).then(result => {
+            MerchantRepository.getTipologies({idIndustry}).then(result => {
                 resolve(result);
             }).catch(err => {
                 reject("Error - Whoops algo salió mal");
@@ -312,9 +316,9 @@ module.exports = class ImpactaMerchant {
     getMerchantSizeCurves(){
         return new Promise(async function(resolve, reject){
             const result = [];
-            result.push({ Shoes: await MerchantRepository.getMerchantShoesSizeCurve() });
-            result.push({ Denim: await MerchantRepository.getMerchantDenimSizeCurve() });
-            result.push({ Clothes: await MerchantRepository.getMerchantClothingSizeCurve()});
+            result.push({ Shoes: [ 34,35,36,37,38,39,40] });
+            result.push({ Denim: [23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38]});
+            result.push({ Clothes: ["U","XXS","XS","S","M","L","XL","2XL","3XL","4XL","5XL","6XL"]});
             resolve(result);
 
         });

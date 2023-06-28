@@ -314,11 +314,12 @@ function getDepartments(idMerchant) {
                           id IdDepartment,
                           description Description
                       FROM
-                          department`;
+                          DEPARTMENT`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
+                console.log(err);
                 return reject("error" + err);
             }
             resolve(rows);

@@ -269,20 +269,31 @@ function getAllSKUsAndPieces(idMerchant, idSeason) {
     });
 }
 
-function getPendantAvios(idSeason) {
+function getPendantAvios(idSeason, idMerchant) {
     console.log("getting pendant avios")
     let sqlString = `
-        SELECT 
-        COUNT(ca.ID_PRODUCT) cantidadSinAprobar
-        FROM
-        PRODUCT p,
-        COMBO_AVIO ca,
-        SEASON ss
-        WHERE
-        p.ID = ca.ID_PRODUCT and
-        ca.ID_STATUS = 1 AND
-        ss.ID = p.ID_SEASON AND
-        p.ID_SEASON = ${idSeason}
+    SELECT COUNT(*) cantidadSinAprobar 
+    FROM COMBO_AVIO_COLOR CAC INNER JOIN COMBO_AVIO CA ON CAC.ID_COMBO_AVIO = CA.ID 
+    INNER JOIN PRODUCT P ON CA.ID_PRODUCT = P.ID WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant} AND CAC.ID_STATUS = 1 ;
+        `;
+
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                console.log(err);
+                return sqlString;
+            }
+            console.log(rows);
+            resolve(rows);
+        });
+    });
+}
+function getTotalRequestedModeling(idSeason, idMerchant) {
+    console.log("getting pendant avios")
+    let sqlString = `
+    SELECT COUNT(*) total
+    FROM PRODUCT P 
+    WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant} ;
         `;
 
     return new Promise(function (resolve, reject) {
@@ -297,84 +308,33 @@ function getPendantAvios(idSeason) {
     });
 }
 
-function getPendantColorsAndPrints(idSeason) {
+function getPendantModeling(idSeason, idMerchant) {
+    console.log("getting pendant avios")
     let sqlString = `
-        SELECT count(combo_fabric.ID_PRODUCT) + 
-        (select
-        count(combo_fabric.ID_STATUS_PRINT) 
-        FROM
-        combo_fabric,
-        product,
-        season
-        where
-        combo_fabric.ID_STATUS_PRINT = 1 AND
-        product.ID = combo_fabric.ID_PRODUCT AND
-        season.ID = combo_fabric.ID_STATUS_PRINT AND
-        combo_fabric.ID_PRINT <> 0 AND
-        product.ID_SEASON = ${idSeason}) cantidadSinAprobar
-        from combo_fabric, season, product 
-        where combo_fabric.ID_STATUS_COLOR = 1 and 
-        product.ID = combo_fabric.ID_PRODUCT and 
-        product.ID_SEASON = ${idSeason} AND 
-        season.ID = combo_fabric.ID_STATUS_COLOR`;
-
-    return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
-            if (err) {
-                return reject(err);
-            }
-
-            resolve(rows);
-        });
-    });
-}
-
-function getTotalRequestedAvios(idSeason) {
-    let sqlString = `
-        select 
-        count(ca.id_product) total
-        FROM
-        product p,
-        COMBO_AVIO ca,
-        season ss
-        where
-        p.ID = ca.id_product and
-        ss.ID = p.ID_SEASON AND
-        p.ID_SEASON = ${idSeason}
+    SELECT COUNT(*) cantidadSinAprobar
+    FROM PRODUCT P 
+    WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant} AND ID_STATUS_MEASUREMENT_TABLE = 1 ;
         `;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                return reject(err);
+                console.log(err);
+                return sqlString;
             }
-
+            console.log(rows);
             resolve(rows);
         });
     });
 }
 
-function getTotalRequestedColorsAndPrints(idSeason) {
-    let sqlString = `
-        SELECT count(combo_fabric.ID_PRODUCT) + 
-        (select
-        count(combo_fabric.ID_STATUS_PRINT) 
-        FROM
-        combo_fabric,
-        product,
-        season
-        where
-        product.ID = combo_fabric.ID_PRODUCT AND
-        season.ID = combo_fabric.ID_STATUS_PRINT AND
-        combo_fabric.ID_PRINT <> 0 AND
-        product.ID_SEASON = ${idSeason}) total
-        from combo_fabric, season, product 
-        where 
-        product.ID = combo_fabric.ID_PRODUCT and 
-        product.ID_SEASON = ${idSeason} AND 
-        season.ID = combo_fabric.ID_STATUS_COLOR AND
-        combo_fabric.ID_STATUS_COLOR <> 0
-        `;
+function getPendantColors(idSeason, idMerchant) {
+    let sqlString = ` 
+        SELECT COUNT(*) cantidadSinAprobar
+        FROM COMBO_FABRIC_COLOR CFC
+        INNER JOIN COMBO_FABRIC CF ON CFC.ID_COMBO_FABRIC = CF.ID
+        INNER JOIN PRODUCT P ON CF.ID_PRODUCT = P.ID
+        WHERE P.ID_MERCHANT = ${idMerchant} AND P.ID_SEASON = ${idSeason} AND CFC.ID_STATUS = 1;`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -387,17 +347,106 @@ function getTotalRequestedColorsAndPrints(idSeason) {
     });
 }
 
-function getPendantQualities(idSeason) {
+function getPendantPrints(idSeason, idMerchant) {
+    let sqlString = ` 
+        SELECT COUNT(*) cantidadSinAprobar
+        FROM COMBO_FABRIC_COLOR CFC
+        INNER JOIN COMBO_FABRIC CF ON CFC.ID_COMBO_FABRIC = CF.ID
+        INNER JOIN PRODUCT P ON CF.ID_PRODUCT = P.ID
+        WHERE P.ID_MERCHANT = ${idMerchant} AND P.ID_SEASON = ${idSeason} AND CFC.ID_STATUS = 1;`;
+
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve(rows);
+        });
+    });
+}
+
+async function getPendantColorsAndPrints(idSeason, idMerchant){
+    let pendantColors = await getPendantColors(idSeason, idMerchant);
+    let pendantPrints = await getPendantPrints(idSeason, idMerchant);
+    return (pendantColors[0].cantidadSinAprobar + pendantPrints[0].cantidadSinAprobar) / 2;
+}
+
+function getTotalRequestedAvios(idSeason, idMerchant) {
+    let sqlString = `SELECT COUNT(*) total 
+    FROM COMBO_AVIO_COLOR CAC INNER JOIN COMBO_AVIO CA ON CAC.ID_COMBO_AVIO = CA.ID 
+    INNER JOIN PRODUCT P ON CA.ID_PRODUCT = P.ID WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant}`;
+
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve(rows);
+        });
+    });
+}
+
+async function getTotalRequestedColorsAndPrints(idSeason, idMerchant){
+    let pendantColors = await getTotalRequestedColors(idSeason, idMerchant);
+    let pendantPrints = await getTotalRequestedPrints(idSeason, idMerchant);
+
+    console.log("elefante")
+    console.log(pendantColors)
+    console.log(pendantPrints)
+    console.log((pendantColors[0].total + pendantPrints[0].total) / 2)
+    return (pendantColors[0].total + pendantPrints[0].total) / 2;
+}
+
+function getTotalRequestedColors(idSeason, idMerchant) {
+    let sqlString = ` 
+        SELECT COUNT(*) total
+        FROM COMBO_FABRIC_COLOR CFC
+        INNER JOIN COMBO_FABRIC CF ON CFC.ID_COMBO_FABRIC = CF.ID
+        INNER JOIN PRODUCT P ON CF.ID_PRODUCT = P.ID
+        WHERE P.ID_MERCHANT = ${idMerchant} AND P.ID_SEASON = ${idSeason};`;
+
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve(rows);
+        });
+    });
+}
+function getTotalRequestedPrints(idSeason,idMerchant) {
+    let sqlString = ` 
+        SELECT COUNT(*) total
+        FROM COMBO_FABRIC_COLOR CFC
+        INNER JOIN COMBO_FABRIC CF ON CFC.ID_COMBO_FABRIC = CF.ID
+        INNER JOIN PRODUCT P ON CF.ID_PRODUCT = P.ID
+        WHERE P.ID_MERCHANT = ${idMerchant} AND P.ID_SEASON = ${idSeason}`;
+
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve(rows);
+        });
+    });
+}
+
+function getPendantQualities(idSeason, idMerchant) {
     let sqlString = `
         SELECT
-            count(combo_fabric.ID_PRODUCT) cantidadSinAprobar
+            COUNT(CF.ID) cantidadSinAprobar
         FROM
-            combo_fabric
-        INNER JOIN product on combo_fabric.ID_PRODUCT = product.ID
-        INNER JOIN season on season.ID = combo_fabric.ID_STATUS
+            COMBO_FABRIC CF
+        INNER JOIN PRODUCT P on CF.ID_PRODUCT = P.ID
         WHERE
-            product.ID_SEASON = ${idSeason} AND
-            combo_fabric.ID_STATUS = 1
+            P.ID_SEASON = ${idSeason} AND
+            P.ID_MERCHANT = ${idMerchant} AND
+            CF.ID_STATUS = 1
         `;
 
     return new Promise(function (resolve, reject) {
@@ -411,17 +460,16 @@ function getPendantQualities(idSeason) {
     });
 }
 
-function getTotalRequestedQualities(idSeason) {
+function getTotalRequestedQualities(idSeason, idMerchant) {
     let sqlString = `
         SELECT
-            count(combo_fabric.ID_PRODUCT) total
-        FROM
-            combo_fabric
-        INNER JOIN product on combo_fabric.ID_PRODUCT = product.ID
-        INNER JOIN season on season.ID = combo_fabric.ID_STATUS
-        WHERE
-            product.ID_SEASON = ${idSeason} 
-        `;
+        COUNT(CF.ID) total
+    FROM
+        COMBO_FABRIC CF
+    INNER JOIN PRODUCT P on CF.ID_PRODUCT = P.ID
+    WHERE
+        P.ID_SEASON = ${idSeason} AND
+        P.ID_MERCHANT = ${idMerchant}`;
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -435,7 +483,9 @@ function getTotalRequestedQualities(idSeason) {
 }
 
 async function getPendantApprovals(idMerchant, idSeason) {
-    console.log("getting approvals")
+    console.log("getting approvals");
+    console.log(idMerchant);
+    console.log(idSeason);
     return new Promise(function (resolve, reject) {
         let pendantAvios;
         let pendantColorsAndPrints;
@@ -443,43 +493,70 @@ async function getPendantApprovals(idMerchant, idSeason) {
         let totalRequestedColorsAndPrints;
         let pendantQualities;
         let totalRequestedQualities;
+        let pendantModeling;
+        let totalRequestedModeling;
 
-        getPendantAvios(idSeason).then((result) => {
+        // Balance, nuevo campo, balance
+        getPendantAvios(idSeason, idMerchant).then((result) => {
             pendantAvios = result[0].cantidadSinAprobar;
-            getPendantColorsAndPrints(idSeason).then((result) => {
-                pendantColorsAndPrints = result[0].cantidadSinAprobar;
-                getTotalRequestedAvios(idSeason).then((result) => {
-                    totalAvios = result[0].total;
-                    getTotalRequestedColorsAndPrints(idSeason).then(
+            console.log("a");
+            console.log(result[0]);
+            console.log(pendantAvios)
+            getPendantColorsAndPrints(idSeason, idMerchant).then((result) => {
+                pendantColorsAndPrints = result;
+                console.log("b");
+                console.log(result);
+                console.log(pendantColorsAndPrints)
+                getTotalRequestedAvios(idSeason, idMerchant).then((result) => {
+                    totalAvios = result[0].total === 0 ? 1 : totalAvios ;
+                    console.log("c");
+                    console.log(result[0]);
+                    console.log(totalAvios);
+                    getTotalRequestedColorsAndPrints(idSeason, idMerchant).then(
                         (result) => {
-                            totalRequestedColorsAndPrints = result[0].total;
-                            getPendantQualities(idSeason).then((result) => {
+                            totalRequestedColorsAndPrints = result === 0 ? 1 : result;
+                            console.log("d");
+                
+                            console.log(totalRequestedColorsAndPrints)
+                            getPendantQualities(idSeason, idMerchant).then((result) => {
+                                console.log("e");
+                                console.log(result[0]);
                                 pendantQualities = result[0].cantidadSinAprobar;
-                                getTotalRequestedQualities(idSeason).then(
-                                    (result) => {
-                                        totalRequestedQualities =
-                                            result[0].total;
-                                        let percentageAvios =
-                                            (pendantAvios * 100) / totalAvios;
-                                        let percentageColorsAndPrints =
-                                            (pendantColorsAndPrints * 100) /
-                                            totalRequestedColorsAndPrints;
-                                        let percentageQualities =
-                                            (pendantQualities * 100) /
-                                            totalRequestedQualities;
-                                        let resp = {
-                                            PercentegeAvios:
-                                                Math.round(percentageAvios),
-                                            PercentegeColorsAndPrints:
-                                                Math.round(
-                                                    percentageColorsAndPrints
-                                                ),
-                                            PercentageQualities:
-                                                Math.round(percentageQualities),
-                                        };
-                                        resolve(resp);
-                                    }
-                                );
+                                console.log(pendantQualities)
+                                getTotalRequestedQualities(idSeason, idMerchant).then((result) => {
+                                    totalRequestedQualities = result[0].total === 0 ? 1 : totalAvios ;
+                                    console.log("f");
+                                    console.log(result[0]);
+                                    console.log(totalRequestedQualities)
+                                    getPendantModeling(idSeason, idMerchant).then((result) => {
+                                        pendantModeling = result[0].cantidadSinAprobar;
+                                        console.log("g");
+                                        console.log(result[0]);
+
+                                        console.log(pendantModeling);
+                                        getTotalRequestedModeling(idSeason, idMerchant).then((result) => {
+                                            totalRequestedModeling = result[0].total === 0 ? 1 : totalAvios ;
+                                            console.log("h");
+                                            console.log(result[0]);
+                                            console.log(totalRequestedModeling)
+                                            let percentageAvios = (pendantAvios * 100) / totalAvios;
+                                            let percentageColorsAndPrints = (pendantColorsAndPrints * 100) / totalRequestedColorsAndPrints;
+                                            let percentageQualities = (pendantQualities * 100) / totalRequestedQualities;
+                                            let percentageModeling = (pendantModeling * 100) / totalRequestedModeling;
+                                            console.log("eeeeeeee")
+                                            console.log(percentageAvios)
+                                            console.log(pendantAvios)
+                                            console.log(totalAvios)
+                                            let resp = {
+                                                PercentageAvios: Math.round(percentageAvios),
+                                                PercentageColorsAndPrints: Math.round(percentageColorsAndPrints),
+                                                PercentageQualities: Math.round(percentageQualities),
+                                                PercentageModeling: Math.round(percentageModeling)
+                                            };
+                                            resolve(resp);
+                                        });
+                                    });
+                                });
                             });
                         }
                     );
@@ -488,6 +565,7 @@ async function getPendantApprovals(idMerchant, idSeason) {
         });
     });
 }
+
 
 module.exports.getPendantApprovals = getPendantApprovals;
 module.exports.getSKUsAndPieces = getSKUsAndPieces;

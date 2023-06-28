@@ -14,6 +14,26 @@ module.exports = class ImpactaDataSheet {
   sayHello() {
     return "Hi from Impacta DataSheet!";
   }
+  async updateProduct(data) {
+    console.log("update product");
+    const self = this; // Almacenar referencia al contexto de this
+  
+    return new Promise(function(resolve, reject) {
+      merchantRepository.deleteComboFabricColor(data.idProduct).then(result => {
+        merchantRepository.deleteComboFabricPrint(data.idProduct).then(result => {
+          merchantRepository.deleteComboFabric(data.idProduct).then(result => {
+            merchantRepository.deleteProduct(data.idProduct).then(async result => {
+              console.log(data);
+              await self.saveNewProduct(data).then(result => {
+                resolve(result);
+              }); // Usar la referencia almacenada
+            });
+          });
+        });
+      });
+    });
+  }
+
   async saveNewProduct(data) {
     console.log("hola")
     let idSizeCurve;
@@ -21,11 +41,17 @@ module.exports = class ImpactaDataSheet {
     try {
       return new Promise(async function (resolve, reject) {
         let idProduct;
+        console.log("que hace");
         if (data.idExistingProduct != 0) {
+          console.log("el prod ya existe")
           idProduct = await getProduct(data.idExistingProduct);
+
           try {
+            console.log("valido el combo del prod que ya existe");
             validateComboData(data);
+            console.log("que hace");
           } catch (exception) {
+            console.log(exception)
             reject(exception.toString());
           }
         } else {
@@ -39,9 +65,9 @@ module.exports = class ImpactaDataSheet {
             await findTIPOLOGY(data.idTipology);
             await findCollection(data.idCollection, data.idMerchant);
             await findDesigner(data.idDesigner, data.idMerchant);
-            idSizeCurve = await saveSizeCurve(data.sizeCurve, data.sizeCurveType);
-            console.log("Id size curve = " + idSizeCurve);
+            console.log("que hace");
           } catch (exception) {
+            console.log(exception)
             reject(exception.toString());
             return;
           }
@@ -49,6 +75,7 @@ module.exports = class ImpactaDataSheet {
         let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
         console.log("alo" + prodNumber)
         idProduct = await saveProduct(data, prodNumber);
+        await savePictures(data, idProduct);
         let savedFabrics = await saveFabrics(data);
         let tipologyName = await merchantRepository.getTipology(data.idTipology);
         if(data.idShoeMaterial > 0){
@@ -58,8 +85,10 @@ module.exports = class ImpactaDataSheet {
             merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
           }
         }
+        console.log("falta el fabric")
         //pasar sizeCurve
-        await handleFabricCombo(savedFabrics, idProduct, data, idSizeCurve);
+        await handleFabricCombo(savedFabrics, idProduct, data);
+        console.log("guarde el producto exitosamente")
         resolve(true);
       });
     } catch (exception) {
@@ -70,27 +99,22 @@ module.exports = class ImpactaDataSheet {
   }
 
 
-  async updateProduct(data){
-    console.log("aaaaaaaaaaaaaa")
-    return new Promise(function(resolve, reject){
-      merchantRepository.updateProduct(data).then(result => {
-          resolve(result); 
-      });
-  });
-  }
+
 };
 
 
-async function handleFabricCombo(savedFabrics, idProduct, data, idSizeCurve) {
+async function handleFabricCombo(savedFabrics, idProduct, data) {
+  console.log("tuki");
+  console.log(data); 
   let idCombo;
-    console.log(savedFabrics)
+    let warehouseEntryDate = savedFabrics[0].warehouseEntryDate;
+    let entryDate = savedFabrics[0].entryDate;
+    let shippingDate = savedFabrics[0].shippingDate;
+    let idShipping = savedFabrics[0].idShipping;
+    let idCountryDestination = savedFabrics[0].idCountryDestination;
     let fabricCombo = savedFabrics.map((fab, i) =>
       merchantRepository.saveComboFabric(
         fab.idFabric,
-        fab.idColor,
-        fab.idPrint,
-        fab.printDescription,
-        fab.colorCount,
         fab.placement,
         idProduct,
         fab.consumption,
@@ -101,23 +125,28 @@ async function handleFabricCombo(savedFabrics, idProduct, data, idSizeCurve) {
         fab.idShipping,
         fab.colors,
         fab.prints,
-        idSizeCurve
+        data.sizeCurveType,
+        data.quantity,
+        fab.idStatus
       )
     );
          Promise.all(fabricCombo).then(async (results) => {
           let aviosCombo = data.avios.map((av) =>
             merchantRepository.saveComboAvio(
               av.idAvio,
-              av.idCountryDestination,
+              idCountryDestination,
               idProduct,
-              av.entryDate,
-              av.warehouseEntryDate,
-              av.shippingDate,
-              av.idShipping,
+              entryDate,
+              warehouseEntryDate,
+              shippingDate,
+              idShipping,
+              av.quantity,
+              av.idStatus,
               av.colors));
 
           Promise.all(aviosCombo)
             .then((results) => {
+              console.log("todo bien guardando combo avios")
               return true;
             })
             .catch((err) => {
@@ -143,9 +172,11 @@ async function getProduct(idProduct) {
 async function validateIdRise(idTipology) {
   try {
     const result = await merchantRepository.getTipology(idTipology);
+    console.log("Buscando tipology")
+    console.log(result[0].NAME);
     if (result.length > 0) {
-      if(result[0].DESCRIPTION !== "Jean"){
-        console.log(result[0].DESCRIPTION)
+      if(result[0].NAME !== "Jean"){
+        console.log(result[0].NAME)
         throw new Error("Error - No puede ingresar un tiro cuando la tipología no es jean.");
       }
       return result;
@@ -156,22 +187,6 @@ async function validateIdRise(idTipology) {
     throw error;
   }
 }
-
-// async function saveCombo(idProduct, quantity) {
-//   try {
-//     const result = await merchantRepository.saveComboProduct(
-//       idProduct,
-//       quantity
-//     );
-//     if (result > 0) {
-//       return result;
-//     } else {
-//       throw new Error("Error - Algo salio mal al guardar el producto");
-//     }
-//   } catch (error) {
-//     throw error;
-//   }
-// }
 
 async function saveProduct(data, idSizeCurve) {
   try {
@@ -187,6 +202,7 @@ async function saveProduct(data, idSizeCurve) {
 }
 
 async function savePictures(data, idProduct) {
+  console.log("guardando pics desde datasheet")
   const promises = [];
   var count = 0;
   data.pictures.forEach(async (element) => {
@@ -213,7 +229,6 @@ async function saveFabrics(data) {
       if(element.idFabric > 0){ //Tela existente
         var fabric = await merchantRepository.getFabricFromId(element.idFabric, data.idMerchant);
         if(fabric.length > 0){//Encontre la tela
-          console.log("serp");
           console.log(element.prints);
           promises.push(
             merchantRepository.saveFiberPercentage(element, element.idFabric)
@@ -233,7 +248,9 @@ async function saveFabrics(data) {
                   entryDate: element.entryDate,
                   warehouseEntryDate: element.warehouseEntryDate,
                   shippingDate: element.shippingDate,
-                  idShipping: element.idShipping
+                  idShipping: element.idShipping,
+                  sizeCurve: element.sizeCurve,
+                  idStatus: element.idStatus
                 });
               }
             })
@@ -263,7 +280,9 @@ async function saveFabrics(data) {
                 entryDate: element.entryDate,
                 warehouseEntryDate: element.warehouseEntryDate,
                 shippingDate: element.shippingDate,
-                idShipping: element.idShipping
+                idShipping: element.idShipping,
+                sizeCurve: element.sizeCurve,
+                idStatus: element.idStatus
               });
             }
           })
@@ -402,7 +421,7 @@ function validateData(data) {
   validateIdCountry(data.idCountry);
   // validateIdCountry(data.idCountryDestination);
   validateIdTipology(data.idTipology);
-  validateSizeTable(data.sizeCurve);
+  //validateSizeTable(data.sizeCurve);
   validateIdDesigner(data.idDesigner);
   validateCosts(data.cost, data.costInStore);
   validateComboData(data);
@@ -422,9 +441,6 @@ function validateSizeCurveData(data){
   if(sizeCurveTypes.map(String).includes(data.sizeCurveType)){
     throw new Error("Tipo de curva de talles invalida.");
   }
-  if(data.idSizeCurve === undefined){
-    throw new Error("Debe ingresar un talle.");
-  }
 }
 function validateIdShoeMateria(idShoeMaterial){
   if(idShoeMaterial === undefined){
@@ -441,12 +457,13 @@ function validateConcept(idConcept){
 function validateExtendedSize(idExtendedSize){
   if(idExtendedSize === undefined){
     throw new Error("Debe ingresar si es un talle mayor a 22XL.");
-  }else if(idExtendedSize !== 1 && idExtendedSize !== 0){
+  }else if(idExtendedSize !== true && idExtendedSize !== false){
     throw new Error("Extended size invalido.");
   }
 }
 
 function validateComboData(data) {
+  console.log("que hace");
   validateFabric(data.telas);
   validateFiberComposition(data.telas);
 }
@@ -455,8 +472,6 @@ function validateFabric(fabric) {
   fabric.forEach((element) => {
     if (element.idFabric == undefined) {
       throw new Error("Todas las telas deben contar con un id.");
-    } else if (element.idColor == undefined) {
-      throw new Error("Tela con idColor invalida");
     } else if (element.placement == undefined) {
       throw new Error("Tela con disposicion invalida");
     } 
@@ -614,12 +629,12 @@ function validateName(name) {
   }
 }
 
-function validateSizeTable(sizeCurve) {
-  var error = sizeCurve.find((x) => x < 0 || x > 10000);
-  if (error !== undefined) {
-    throw new Error("Debe ingresar una tabla de medidas.");
-  }
-}
+// function validateSizeTable(sizeCurve) {
+//   var error = sizeCurve.find((x) => x < 0 || x > 10000);
+//   if (error !== undefined) {
+//     throw new Error("Debe ingresar una tabla de medidas.");
+//   }
+// }
 
 function validateFiberComposition(fabrics) {
   fabrics.forEach((element) => {

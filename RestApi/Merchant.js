@@ -74,10 +74,10 @@ router.route("/getCountries/:IdMerchant").get((req, res) => {
         });
 });
 
-router.route("/getTipologies/:IdMerchant/:IdIndustry").get((req, res) => {
+router.route("/getTipologies/:idIndustry").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
-        .getTipologies({ idMerchant: req.params.IdMerchant, idIndustry: req.params.IdIndustry })
+        .getTipologies({idIndustry: req.params.idIndustry})
         .then((result) => {
             res.status(200);
             res.send(result);
