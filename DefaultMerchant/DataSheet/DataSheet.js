@@ -18,81 +18,72 @@ module.exports = class ImpactaDataSheet {
     console.log("update product");
     const self = this; // Almacenar referencia al contexto de this
   
-    return new Promise(function(resolve, reject) {
-      merchantRepository.deleteComboFabricColor(data.idProduct).then(result => {
-        merchantRepository.deleteComboFabricPrint(data.idProduct).then(result => {
-          merchantRepository.deleteComboFabric(data.idProduct).then(result => {
-            merchantRepository.deleteProduct(data.idProduct).then(async result => {
-              console.log(data);
-              await self.saveNewProduct(data).then(result => {
-                resolve(result);
-              }); // Usar la referencia almacenada
+    return new Promise(async function(resolve, reject) {
+    await self.saveNewProduct(data).then(result => {
+      if(result){
+        merchantRepository.deleteComboFabricColor(data.idProduct).then(result => {
+          merchantRepository.deleteComboFabricPrint(data.idProduct).then(result => {
+            merchantRepository.deleteComboFabric(data.idProduct).then(result => {
+              merchantRepository.deleteProduct(data.idProduct).then(async result => {
+                merchantRepository.deleteProductPicture(data.idProduct)(async result => {
+                  resolve(true);
+                })
+              });
             });
           });
         });
-      });
+      }
     });
+  })
   }
 
   async saveNewProduct(data) {
-    console.log("hola")
-    let idSizeCurve;
-
+    data.result = true;
     try {
       return new Promise(async function (resolve, reject) {
         let idProduct;
-        console.log("que hace");
         if (data.idExistingProduct != 0) {
-          console.log("el prod ya existe")
-          idProduct = await getProduct(data.idExistingProduct);
-
-          try {
-            console.log("valido el combo del prod que ya existe");
-            validateComboData(data);
-            console.log("que hace");
-          } catch (exception) {
-            console.log(exception)
-            reject(exception.toString());
-          }
         } else {
           try {//Valido los datos de los combos - podemos sacarlo para mayor eficiencia
             validateData(data);
-            if(data.idRise !== 0){
-              await validateIdRise(data.idTipology);
-            }
             await findCountry(data.idCountry);
-            //await findShippingType(data.idShipping);
             await findTIPOLOGY(data.idTipology);
-            await findCollection(data.idCollection, data.idMerchant);
-            await findDesigner(data.idDesigner, data.idMerchant);
-            console.log("que hace");
           } catch (exception) {
             console.log(exception)
             reject(exception.toString());
             return;
           }
         }
+        //merchantRepository.startTransaction();
         let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
-        console.log("alo" + prodNumber)
         idProduct = await saveProduct(data, prodNumber);
         await savePictures(data, idProduct);
         let savedFabrics = await saveFabrics(data);
-        let tipologyName = await merchantRepository.getTipology(data.idTipology);
+        let managmentUnit = await merchantRepository.getManagmentUnit(data.idManagmentUnit);
+
         if(data.idShoeMaterial > 0){
-          if(tipologyName[0].NAME  !== "Zapato"){
+          if(managmentUnit[0].NAME  !== "Shoes"){
+            data.result = false;
             reject("Si se ingreso un material de zapatos la tipología debe corresponder a zapatos");
           }else{
             merchantRepository.insertShoeMaterialProd(data.idShoeMaterial, idProduct);
           }
         }
-        console.log("falta el fabric")
-        //pasar sizeCurve
-        await handleFabricCombo(savedFabrics, idProduct, data);
-        console.log("guarde el producto exitosamente")
-        resolve(true);
+        try{
+          await handleFabricCombo(savedFabrics, idProduct, data);
+          //merchantRepository.commit();
+          console.log("sal del himalaya");
+          console.log(data.result)
+          resolve(data.result);
+        }catch(exception){
+          merchantRepository.rollback();
+          console.log("error");
+          console.log(exception);
+        }
       });
     } catch (exception) {
       return new Promise(function (resolve, reject) {
+        //merchantRepository.rollback();
         reject(exception.message);
       });
     }
@@ -104,16 +95,18 @@ module.exports = class ImpactaDataSheet {
 
 
 async function handleFabricCombo(savedFabrics, idProduct, data) {
-  console.log("tuki");
-  console.log(data); 
+  console.log("001");
+  console.log(savedFabrics[0]); 
   let idCombo;
+
     let warehouseEntryDate = savedFabrics[0].warehouseEntryDate;
     let entryDate = savedFabrics[0].entryDate;
     let shippingDate = savedFabrics[0].shippingDate;
     let idShipping = savedFabrics[0].idShipping;
     let idCountryDestination = savedFabrics[0].idCountryDestination;
-    let fabricCombo = savedFabrics.map((fab, i) =>
-      merchantRepository.saveComboFabric(
+
+    let fabricCombo = savedFabrics.map(async (fab, i) =>
+     await merchantRepository.saveComboFabric(data,
         fab.idFabric,
         fab.placement,
         idProduct,
@@ -131,8 +124,8 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
       )
     );
          Promise.all(fabricCombo).then(async (results) => {
-          let aviosCombo = data.avios.map((av) =>
-            merchantRepository.saveComboAvio(
+          let aviosCombo = data.avios.map(async (av) =>
+           await merchantRepository.saveComboAvio(
               av.idAvio,
               idCountryDestination,
               idProduct,
@@ -151,6 +144,7 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
             })
             .catch((err) => {
               console.log(err)
+              data.result = false;
               throw new Error("Error - Algo salio mal al guardar los avios");
             });
         });
@@ -188,9 +182,9 @@ async function validateIdRise(idTipology) {
   }
 }
 
-async function saveProduct(data, idSizeCurve) {
+async function saveProduct(data, prodNumber) {
   try {
-    const result = await merchantRepository.saveProduct(data, idSizeCurve);
+    const result = await merchantRepository.saveProduct(data, prodNumber);
     if (result > 0) {
       return result;
     } else {
@@ -229,13 +223,8 @@ async function saveFabrics(data) {
       if(element.idFabric > 0){ //Tela existente
         var fabric = await merchantRepository.getFabricFromId(element.idFabric, data.idMerchant);
         if(fabric.length > 0){//Encontre la tela
-          console.log(element.prints);
-          promises.push(
-            merchantRepository.saveFiberPercentage(element, element.idFabric)
-            .then(result => {
-              if (result > 0) {
                 fabrics.push({
-                  idFabric: result,
+                  idFabric: element.idFabric,
                   placement: element.placement,
                   idColor: element.idColor,
                   idPrint: element.idPrint,
@@ -251,14 +240,9 @@ async function saveFabrics(data) {
                   idShipping: element.idShipping,
                   sizeCurve: element.sizeCurve,
                   idStatus: element.idStatus
-                });
-              }
-            })
-            .catch(err => {
-              console.error(err);
-            })
-          );
+                })
         }else{
+          data.result = false;
           throw Error("El id de la tela ingresado no se encuentra en el sistema.");
         }
       }else{
@@ -287,6 +271,7 @@ async function saveFabrics(data) {
             }
           })
           .catch(err => {
+            data.result = false;
             console.error(err);
           })
         );
@@ -296,6 +281,7 @@ async function saveFabrics(data) {
     return fabrics;
 
   } catch (err) {
+    data.result = false;
     throw err;
   }
 }
@@ -411,14 +397,18 @@ async function findShippingType(idShippingType) {
 //IdOrigin e IdDestination
 //idCountryDestination
 function validateData(data) {
+  console.log("test quantity");
+  console.log(data.quantity);
   validateMerchantBrand(data.idMerchantBrand);
   // validateShippingDate(data.entryDate);
   // validateShippingDate(data.warehouseEntryDate);
   validateName(data.name);
+
   validateQuantity(data.quantity);
   validateDetail(data.detail);
   // validateIdShipping(data.idShipping);
   validateIdCountry(data.idCountry);
+  validateSizeCurveType(data.sizeCurveType);
   // validateIdCountry(data.idCountryDestination);
   validateIdTipology(data.idTipology);
   //validateSizeTable(data.sizeCurve);
@@ -426,7 +416,7 @@ function validateData(data) {
   validateCosts(data.cost, data.costInStore);
   validateComboData(data);
   validateIdIndustry(data.idIndustry);
-  validateYear(data.year);
+  //validateYear(data.year);
   validateProyecta(data.proyecta);
   validateConcept(data.idConcept);
   validateIdLine(data.idLine);
@@ -549,7 +539,13 @@ function validateShippingDate(shippingDate) {
   }
   return shippingDate;
 }
-
+function validateSizeCurveType(sizeCurveType) {
+  if (sizeCurveType === undefined) {
+    throw new Error("Debe ingresar un tipo de curva de talles.");
+  } 
+  
+  return sizeCurveType;
+}
 function validateIdCareLabel(idCareLabel) {
   if (idCareLabel === undefined) {
     throw new Error("Debe ingresar un id de la etiqueta de cuidados.");
@@ -600,20 +596,28 @@ function validateWeight(weight) {
   }
 }
 function validateQuantity(dataQuantity) {
-  if (dataQuantity === undefined) {
-    throw new Error("Debe ingresar una cantidad para el producto.");
-  } else {
-    if (isNaN(dataQuantity)) {
-      throw new Error("La cantidad del producto debe ser numerico.");
+  console.log("validating quantity");
+  console.log(dataQuantity);
+  try{
+    if (dataQuantity === undefined) {
+      throw new Error("Debe ingresar una cantidad para el producto.");
     } else {
-      if (dataQuantity < 1 || dataQuantity > 1000000) {
-        throw new Error(
-          "La cantidad del producto debe ser mayor 0 y menor a 1000000."
-        );
+      if (isNaN(dataQuantity)) {
+        throw new Error("La cantidad del producto debe ser numerico.");
+      } else {
+        if (dataQuantity < 1 || dataQuantity > 1000000) {
+          throw new Error(
+            "La cantidad del producto debe ser mayor 0 y menor a 1000000."
+          );
+        }
       }
+      return dataQuantity;
     }
-    return dataQuantity;
+  }catch(exception){
+    console.log("Error quantity");
+    console.log(exception);
   }
+
 }
 function validateName(name) {
   if (name === undefined) {
@@ -647,19 +651,22 @@ function validateFiberComposition(fabrics) {
         "Debe ingresar el peso de la tela y el mismo debe ser mayor a 0"
       );
     }  else {
-      let sum = 0;
-      if(element.composition.length > 0){
-        element.composition.forEach((element) => {
-          if (element.idFiber === undefined || element.percentage === undefined) {
-            throw new Error("Debe ingresar el id y el porcentaje de la fibra");
-          } else {
-            sum += parseInt(element.percentage);
+      if(element.idFabric === 0){
+        console.log("Musica");
+        let sum = 0;
+        if(element.composition.length > 0){
+          element.composition.forEach((element) => {
+            if (element.idFiber === undefined || element.percentage === undefined) {
+              throw new Error("Debe ingresar el id y el porcentaje de la fibra");
+            } else {
+              sum += parseInt(element.percentage);
+            }
+          });
+          if (sum !== 100) {
+            throw new Error(
+              "La sumatoria de los porcentajes de las fibras debe ser 100."
+            );
           }
-        });
-        if (sum !== 100) {
-          throw new Error(
-            "La sumatoria de los porcentajes de las fibras debe ser 100."
-          );
         }
       }
     }

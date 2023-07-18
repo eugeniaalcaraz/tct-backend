@@ -20,7 +20,7 @@ router.route("/prueba/").get((req, res) => {
 
 router
     .route(
-        "/getAllProductsWithFilters/:idMerchant/:idSeason/:idDesigner/:idFabric/:idDepartment/:idSupplier/:idTIPOLOGY/:idStatus/:ProductName/:ProductPrice/:ProductWeight/:idOrigin/:idDestination/:idShippingType/:shippingDate/:productSku"
+        "/getAllProductsWithFilters/:idMerchant/:idSeason/:idBrand/:idManagmentUnit/:idIndustry/:idTipology/:idConcept/:idLine/:idBodyFit/:entryDate/:warehouseEntryDate/:storeDate/:idShippingType/:idFabric/:prodName"
     )
     .get((req, res) => {
         currentBrand = new DynamicClass("ImpactaListing");
@@ -28,20 +28,19 @@ router
             .getAllProductsWithFilters(
                 req.params.idMerchant,
                 req.params.idSeason,
-                req.params.idDesigner,
-                req.params.idFabric,
-                req.params.idDepartment,
-                req.params.idSupplier,
-                req.params.idTIPOLOGY,
-                req.params.idStatus,
-                req.params.ProductName,
-                req.params.ProductPrice,
-                req.params.ProductWeight,
-                req.params.idOrigin,
-                req.params.idDestination,
+                req.params.idBrand,
+                req.params.idManagmentUnit,
+                req.params.idIndustry,
+                req.params.idTipology,
+                req.params.idConcept,
+                req.params.idLine,
+                req.params.idBodyFit,
+                req.params.entryDate,
+                req.params.warehouseEntryDate,
+                req.params.storeDate,
                 req.params.idShippingType,
-                req.params.shippingDate,
-                req.params.productSku
+                req.params.idFabric,
+                req.params.prodName
             )
             .then((result) => {
                 res.status(200);

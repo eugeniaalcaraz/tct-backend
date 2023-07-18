@@ -1,4 +1,5 @@
 var MerchantRepository = require('../../DAL/MerchantQuerys/Merchant');
+const iconv = require('iconv-lite');
 
 module.exports = class ImpactaMerchant {
     constructor () {
@@ -6,46 +7,65 @@ module.exports = class ImpactaMerchant {
     }
 
     async getProduct(idProduct) {
+        console.log("buenaass")
         try {
           let productData = await MerchantRepository.getProduct(idProduct);
-          let productPicture = await MerchantRepository.getProductPicture(idProduct);
-          let cmbFab = [];
-          let cmbColors = [];
-          let cmbPrints = [];
-          let cmbAvios = [];
           console.log(productData);
-          console.log("buscando los combos")
+          let productPicture = await MerchantRepository.getProductPicture(idProduct);
+          try{
+            productPicture = await managePic(productPicture);
+            productData[0].measurementTable = iconv.decode(productData[0].measurementTable, 'utf-8');
+            console.log("measure");
+            console.log(productData[0].measurementTable);
+          }catch(exception){
+            console.log(exception);
+          }
+          let cmbFab = [];
           let comboFabric = await MerchantRepository.getComboFabric(idProduct);
-          console.log(comboFabric);
+          
           await Promise.all(comboFabric.map(async (comboFab) => {
             let comboColorsPromise = MerchantRepository.getComboFabricColors(comboFab.id);
             let comboPrintsPromise = MerchantRepository.getComboFabricPrints(comboFab.id);
-      
-            let comboColors = await comboColorsPromise;
-            let comboPrints = await comboPrintsPromise;
-
+            let composition = MerchantRepository.getFabricComposition(comboFab.idFabric)
+            comboFab.comboColors = await comboColorsPromise;
+            comboFab.comboPrints = await comboPrintsPromise;
+            comboFab.composition = await composition;
             cmbFab.push(comboFab);
-            cmbColors.push(comboColors);
-            cmbPrints.push(comboPrints);
+
+            console.log(productData)
+            try{
+                await Promise.all(comboFab.comboColors.map(async (color) => {
+                    color.sizeCurve = await MerchantRepository.getSizeCurve(color.idSizeCurve, productData[0].sizeCurveType);
+                  }));
+    
+                  await Promise.all(comboFab.comboPrints.map(async (print) => {
+                    print.sizeCurve = await MerchantRepository.getSizeCurve(print.idSizeCurve, productData[0].sizeCurveType);
+                  }));
+            }catch(exception){
+                console.log("de sizeCuvre")
+                console.log(exception);
+
+            }
+
         
           }));
-
-          let comboAvio = await MerchantRepository.getComboAvio(idProduct);
-          await Promise.all(comboAvio.map(async (combAv) => {
-            let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.id);
-
-            let comboAviosPromise = await comboAviosColorsPromise;
-            cmbAvios.push(comboAviosPromise);
-          }))
-
+          let comboAvio;
+          try{
+            comboAvio = await MerchantRepository.getComboAvio(idProduct);
+            await Promise.all(comboAvio.map(async (combAv) => {
+              let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.id);
+                
+              combAv.colors = await comboAviosColorsPromise;
+            }))
+          }catch(exception){
+            console.log(exception);
+          }
+          console.log("saliendo")
           return {
             basicInfo : productData,
             productPicture: productPicture,
             fabrics: cmbFab,
-            comboFabricColors: cmbColors,
-            comboFabricPrints: cmbPrints,
-            avios: comboAvio,
-            comboColorAvios: cmbAvios
+            avios: comboAvio
           };
 
         } catch (err) {
@@ -65,6 +85,7 @@ module.exports = class ImpactaMerchant {
     }
 
     getMerchantSeason({idMerchant, idSeason}){
+        console.log("id season: " + idSeason)
         return new Promise(function(resolve, reject){
             MerchantRepository.getMerchantSeason({idMerchant,idSeason}).then(result => {
                 resolve(result);
@@ -191,10 +212,10 @@ module.exports = class ImpactaMerchant {
        });
     }
 
-    getTipologies({idIndustry}){
+    getTipologies(idIndustry){
         console.log("buscnado tipology")
         return new Promise(function(resolve, reject){
-            MerchantRepository.getTipologies({idIndustry}).then(result => {
+            MerchantRepository.getTipologiesForIndustry(idIndustry).then(result => {
                 resolve(result);
             }).catch(err => {
                 reject("Error - Whoops algo salió mal");
@@ -324,3 +345,17 @@ module.exports = class ImpactaMerchant {
         });
     }
 };
+async function managePic(item){
+    console.log("aconcagua")
+    if(item[0].PATH != undefined){
+        // const base64String = Buffer.from(item[0].PATH, 'latin1').toString("base64");
+        // return "data:image/png;base64," + base64String;   
+        console.log(item[0].PATH instanceof Buffer); // Should output "true"
+        stringValue = iconv.decode(item[0].PATH, 'utf-8');
+        console.log(stringValue);
+        return stringValue;
+    }
+    else{
+        return "";
+    }
+}

@@ -49,6 +49,8 @@ app.get("/", (req, res) => {
     console.log("hellooo")
     connection.query('SELECT * FROM test', function (error, results, fields) {
         if (error) {
+          console.log("error");
+          console.log(error);
           console.error(error);
           return;
         }

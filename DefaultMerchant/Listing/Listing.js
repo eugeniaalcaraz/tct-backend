@@ -1,7 +1,9 @@
 var Listing = require('../../DefaultMerchant/Listing/Listing');
 var ListingRepository = require('../../DAL/ListingQuerys/Listing');
+var MerchantRepository = require('../../DAL/MerchantQuerys/Merchant');
 const { resolve } = require('path');
 const DefaultMerchant = require('../Merchant/Merchant');
+const iconv = require('iconv-lite');
 
 module.exports = class ImpactaListing {
     constructor(){
@@ -161,13 +163,34 @@ module.exports = class ImpactaListing {
         })
     };
 
-    async getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTIPOLOGY, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku){
+    async getAllProductsWithFilters(idMerchant,idSeason,idBrand,idManagmentUnit,idIndustry,
+                                    idTipology,idConcept,idLine,idBodyFit,entryDate,warehouseEntryDate,
+                                    storeDate,idShippingType,idFabric,prodName){
+        let res = [];
         return new Promise(function(resolve, reject){
-            ListingRepository.getAllProductsWithFilters(idMerchant, idSeason, idDesigner, idFabric, idDepartment, idSupplier, idTIPOLOGY, idStatus, ProductName, ProductPrice, ProductWeight, idOrigin, idDestination, idShippingType, shippingDate, productSku).then(result => {
-                resolve(result);
+            ListingRepository.getAllProductsWithFilters(idMerchant,idSeason,idBrand,idManagmentUnit,idIndustry,
+                idTipology,idConcept,idLine,idBodyFit,entryDate,warehouseEntryDate,storeDate,idShippingType,idFabric,prodName).then(async result => {
+                    const promises = result.map(async (item) => {
+                        await managePic(item);
+                        item.fabricData = await MerchantRepository.getFabricComposition(item.idFabric);
+          
+                      });
+              
+                      await Promise.all(promises);
+                      resolve(result);
+
             }).catch(err => {
                 reject("Error: " + err);
             });
         })
     };
+
+
+}
+async function managePic(item){
+    console.log("poocahontas")
+    console.log(item);
+    if(item.pic !== null){
+        item.pic = iconv.decode(item.pic, 'utf-8');
+    }
 }

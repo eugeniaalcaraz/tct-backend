@@ -25,7 +25,7 @@ router.route("/getProductsStatus/:idMerchant/:idSeason").get((req, res) => {
 router.route("/getBalanceData/:idMerchant/:idSeason").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaDashboard");
     currentBrand
-        .getBalanceData({
+        .getBalanceInfo({
             idMerchant: req.params.idMerchant,
             idSeason: req.params.idSeason,
         })
@@ -35,7 +35,7 @@ router.route("/getBalanceData/:idMerchant/:idSeason").get((req, res) => {
         })
         .catch((err) => {
             res.status(400);
-            res.send(error);
+            res.send(err);
         });
 });
 
@@ -73,7 +73,8 @@ router
             })
             .catch((err) => {
                 res.status(400);
-                res.send(error);
+                console.log(err)
+                res.send(err);
             });
     });
 
@@ -131,6 +132,32 @@ router.route("/getSeasonMargin/:idMerchant/:idSeason").get((req, res) => {
         });
 });
 
+router.route("/getPiecesByColor/:idMerchant/:idSeason").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaDashboard");
+    currentBrand
+        .getPiecesByColor(req.params.idMerchant, req.params.idSeason)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+router.route("/SKUandPieces/:idMerchant/:idSeason").get((req, res) => {
+    currentBrand = new DynamicClass("ImpactaDashboard");
+    currentBrand
+        .SKUandPieces(req.params.idMerchant, req.params.idSeason)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
 router.route("/getTopSixSentSamples/:idMerchant/:idSeason").get((req, res) => {
     currentBrand = new DynamicClass("ImpactaDashboard");
     currentBrand

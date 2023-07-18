@@ -412,184 +412,265 @@ function getAllProducts(idMerchant, idSeason) {
 }
 
 function getAllProductsWithFilters(
-    idMerchant,
-    idSeason,
-    idDesigner,
-    idFabric,
-    idDepartment,
-    idSupplier,
-    idTIPOLOGY,
-    idStatus,
-    ProductName,
-    ProductPrice,
-    ProductWeight,
-    idOrigin,
-    idDestination,
-    idShippingType,
-    shippingDate,
-    quantity
+    idMerchant,idSeason,idBrand,idManagmentUnit,idIndustry,
+    idTipology,idConcept,idLine,idBodyFit,entryDate,warehouseEntryDate,storeDate,idShippingType,idFabric,prodName
 ) {
-    let sqlString = `SELECT
-    P.ID IdProduct,
-    P.NAME ProductoNombre,
-    P.QUANTITY Cantidad,
-    P.COST Costo,
-    P.COST_IN_STORE Precio,
-    ROUND(((P.COST_IN_STORE/1.22 - P.COST)/(P.COST_IN_STORE/1.22)*100), 2) Margin,
-    P.WEIGHT Peso,
-    PP.PATH Foto,
-    SUPP.NAME Proveedor,
-    D.DESCRIPTION Departamento,
-    T.NAME Tipo,
-    MIN(F.DESCRIPTION) Calidad,
-    COUNT(F.DESCRIPTION) - 1 CalidadesAdicionales,
-    ST.NAME Estado
+    console.log("hola listado")
+    let sqlString = `
+    SELECT DISTINCT
+        P.ID idProduct,
+        P.Number productNumber,
+        P.ID_SEASON idSeason,
+        CONCAT(S.NAME, ' ', S.LASTNAME) AS supplier,
+        P.NAME name,
+        L.DESCRIPTION line,
+        MU.DESCRIPTION managmentUnit,
+        I.DESCRIPTION industry,
+        T.NAME tipology,
+        MBF.DESCRIPTION bodyFit,
+        StatProd.NAME statusProduct,
+        StatFab.NAME statusFabric,
+        CF2.STATUS_DATE statusFabricDate,
+        StatAvio.NAME statusAvio,
+        CA2.STATUS_DATE statusAvioDate,
+        StatModeling.NAME statusModeling,
+        P.MODELING_DATE statusModelingDate,
+        StatSample.NAME statusSample,
+        P.SAMPLE_DATE statusSampleDate,
+        C.DESCRIPTION concept,
+        CF2.ShippingType shippingType,
+        CF2.max_shipping_date shippingDate,
+        CF2.ENTRY_DATE entryDate,
+        CF2.WAREHOUSE_ENTRY_DATE warehouseEntryDate,
+        MB.NAME brand,
+        P.YEAR year,
+        P.COST cost,
+        P.COST_IN_STORE costInStore,
+        P.QUANTITY quantity,
+        CF2.ID_FABRIC idFabric,
+        PP.PATH pic
     FROM
-    PRODUCT P
-    INNER JOIN COMBO_FABRIC COMF ON P.ID = COMF.ID_PRODUCT
-    INNER JOIN FABRIC F ON F.ID = COMF.ID_FABRIC
-    INNER JOIN DEPARTMENT D ON P.ID_DEPARTMENT = D.ID
-    INNER JOIN DESIGNER DES ON P.ID_DESIGNER = DES.ID
-    INNER JOIN TIPOLOGY T ON T.ID = P.ID_TIPOLOGY
-    INNER JOIN SEASON S ON S.ID = P.ID_SEASON
-    INNER JOIN SUPPLIER SUPP ON SUPP.ID = P.ID_SUPPLIER
-    INNER JOIN STATUS ST ON ST.ID = P.ID_STATUS
-    LEFT OUTER JOIN PRODUCT_PICTURE PP ON PP.ID_PRODUCT = P.ID AND PP.IS_MAIN = 1
-    WHERE 1 = 1`;
+        PRODUCT P
+        LEFT OUTER JOIN PRODUCT_PICTURE PP ON P.ID = PP.ID_PRODUCT
+        INNER JOIN SUPPLIER S ON P.ID_SUPPLIER = S.ID
+        INNER JOIN LINE L ON P.ID_LINE = L.ID
+        INNER JOIN MANAGMENT_UNIT MU ON MU.ID = P.ID_MANAGMENT_UNIT
+        INNER JOIN INDUSTRY I ON P.ID_INDUSTRY = I.ID 
+        INNER JOIN TIPOLOGY T ON P.ID_TIPOLOGY = T.ID
+        INNER JOIN MERCHANT_BODY_FIT MBF ON P.ID_MERCHANT = MBF.ID_MERCHANT AND P.ID_BODY_FIT = MBF.ID
+        INNER JOIN COMBO_FABRIC CF ON P.ID = CF.ID_PRODUCT
+        INNER JOIN STATUS StatProd ON P.ID_STATUS = StatProd.ID
+        INNER JOIN CONCEPT C ON P.ID_CONCEPT = C.ID
+        INNER JOIN MERCHANT_BRAND MB ON P.ID_MERCHANT_BRAND = MB.ID
+        INNER JOIN (
+            SELECT CF.ID_PRODUCT, 
+            CF.ID_FABRIC,
+            CF.ID_STATUS, 
+            CF.STATUS_DATE, 
+            MAX(CF.SHIPPING_DATE) AS max_shipping_date, 
+            MAX(CF.ENTRY_DATE) AS ENTRY_DATE, 
+            MAX(CF.WAREHOUSE_ENTRY_DATE) AS WAREHOUSE_ENTRY_DATE, 
+            ST.NAME as ShippingType
+            FROM COMBO_FABRIC CF
+            INNER JOIN SHIPPING_TYPE ST ON CF.ID_SHIPPING = ST.ID
+            GROUP BY CF.ID_PRODUCT, CF.ID_STATUS, CF.STATUS_DATE, ST.NAME, CF.ID_FABRIC
+        ) CF2 ON P.ID = CF2.ID_PRODUCT 
+        INNER JOIN STATUS StatFab ON CF2.ID_STATUS = StatFab.ID
+        LEFT OUTER JOIN (
+            SELECT CA.ID_PRODUCT, 
+            CA.ID_STATUS, 
+            CA.STATUS_DATE, MAX(CA.SHIPPING_DATE) AS max_shipping_date
+            FROM COMBO_AVIO CA
+            GROUP BY CA.ID_PRODUCT, CA.ID_STATUS, CA.STATUS_DATE
+        ) CA2 ON P.ID = CA2.ID_PRODUCT
+        LEFT JOIN STATUS StatAvio ON CA2.ID_STATUS = StatAvio.ID
+        LEFT JOIN STATUS StatModeling ON P.ID_STATUS_MEASUREMENT_TABLE = StatModeling.ID
+        LEFT JOIN STATUS StatSample ON P.ID_SAMPLE_STATUS = StatSample.ID
 
-    if (idSeason != "nofilter") {
-        if (idSeason.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idSeason.split(search).join(replaceWith);
-
-            sqlString += ` AND s.ID in (${result})`;
-        } else {
-            sqlString += ` AND s.ID = ${idSeason}`;
-        }
+        `
+    ;
+    if (entryDate != "nofilter") {
+        sqlString += ` INNER JOIN (
+            SELECT CFED.ENTRY_DATE, CFED.ID_PRODUCT
+            FROM COMBO_FABRIC CFED
+            GROUP BY CFED.ID_PRODUCT,  CFED.ENTRY_DATE ) CFEDTABLE ON CFEDTABLE.ENTRY_DATE = '${entryDate}'`;
     }
-    if (idDesigner != "nofilter") {
-        if (idDesigner.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idDesigner.split(search).join(replaceWith);
-
-            sqlString += ` AND des.ID in (${result})`;
-        } else {
-            sqlString += ` AND des.ID = ${idDesigner}`;
-        }
+    if (warehouseEntryDate != "nofilter") {
+        sqlString += ` INNER JOIN (
+            SELECT CFED2.WAREHOUSE_ENTRY_DATE, CFED2.ID_PRODUCT
+            FROM COMBO_FABRIC CFED2
+            GROUP BY CFED2.ID_PRODUCT,  CFED2.WAREHOUSE_ENTRY_DATE ) CFED2TABLE ON CFED2TABLE.WAREHOUSE_ENTRY_DATE = '${warehouseEntryDate}'`;
+    }
+    if (storeDate != "nofilter") {
+        sqlString += ` INNER JOIN (
+            SELECT CFED3.SHIPPING_DATE, CFED3.ID_PRODUCT
+            FROM COMBO_FABRIC CFED3
+            GROUP BY CFED3.ID_PRODUCT,  CFED3.SHIPPING_DATE ) CFED3TABLE ON CFED3TABLE.SHIPPING_DATE = '${storeDate}'`;
+    }
+    if (idShippingType != "nofilter") {
+        sqlString += ` INNER JOIN (
+            SELECT CFSHIP.ID_SHIPPING, CFSHIP.ID_PRODUCT
+            FROM COMBO_FABRIC CFSHIP
+            GROUP BY CFSHIP.ID_PRODUCT,  CFSHIP.ID_SHIPPING ) SHIPTABLE ON SHIPTABLE.ID_SHIPPING = ${idShippingType}`;
+    }
+    sqlString += ` WHERE P.ID_MERCHANT = ${idMerchant} `;
+    //sqlString += `WHERE P.ID_MERCHANT = ${idMerchant}`
+    if (prodName != "nofilter") {
+        let newName = prodName.replace('%', ' ');
+        sqlString += ` AND P.NAME LIKE '%${newName}%' `;
+    }
+    if (idSeason != "nofilter") {
+        sqlString += ` AND P.ID_SEASON = ${idSeason} `;
+    }
+    if (idBrand != "nofilter") {
+        sqlString += ` AND P.ID_MERCHANT_BRAND = ${idBrand}`;
+    }
+    if (idLine != "nofilter") {
+        sqlString += ` AND P.ID_LINE = ${idLine}`;
+    }
+    if (idManagmentUnit != "nofilter") {
+        sqlString += ` AND P.ID_MANAGMENT_UNIT = ${idManagmentUnit}`;
+    }
+    if (idIndustry != "nofilter") {
+        sqlString += ` AND P.ID_INDUSTRY = ${idIndustry}`;
+    }
+    if (idTipology != "nofilter") {
+        sqlString += ` AND P.ID_TIPOLOGY = ${idTipology}`;
+    }
+    if (idBodyFit != "nofilter") {
+        sqlString += ` AND P.ID_BODY_FIT = ${idBodyFit}`;
     }
     if (idFabric != "nofilter") {
-        if (idFabric.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idFabric.split(search).join(replaceWith);
-
-            sqlString += ` AND COMF.ID_FABRIC in (${result})`;
-        } else {
-            sqlString += ` AND COMF.ID_FABRIC = ${idFabric}`;
-        }
+        sqlString += ` AND CF.ID_FABRIC = ${idFabric}`;
     }
-    if (idDepartment != "nofilter") {
-        if (idDepartment.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idDepartment.split(search).join(replaceWith);
-
-            sqlString += ` AND D.ID in (${result})`;
-        } else {
-            sqlString += ` AND D.ID = ${idDepartment}`;
-        }
-    }
-    if (idSupplier != "nofilter") {
-        if (idSupplier.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idSupplier.split(search).join(replaceWith);
-
-            sqlString += ` AND SUPP.ID in (${result})`;
-        } else {
-            sqlString += ` AND SUPP.ID = ${idSupplier}`;
-        }
-    }
-    if (idTIPOLOGY != "nofilter") {
-        if (idTIPOLOGY.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idTIPOLOGY.split(search).join(replaceWith);
-
-            sqlString += ` AND T.ID in (${result})`;
-        } else {
-            sqlString += ` AND T.ID = ${idTIPOLOGY}`;
-        }
-    }
-    if (idStatus != "nofilter") {
-        if (idStatus.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idStatus.split(search).join(replaceWith);
-
-            sqlString += ` AND ST.ID in (${result})`;
-        } else {
-            sqlString += ` AND ST.ID = ${idStatus}`;
-        }
-    }
-    if (ProductName != "nofilter") {
-        sqlString += ` AND P.NAME like '%${ProductName}%'`;
-    }
-    if (ProductPrice != "nofilter") {
-        sqlString += ` AND P.COST = '${ProductPrice}'`;
-    }
-    if (ProductWeight != "nofilter") {
-        sqlString += ` AND P.WEIGHT = '${ProductWeight}'`;
+    if (idConcept != "nofilter") {
+        sqlString += ` AND C.ID = ${idConcept}`;
     }
 
-    if (shippingDate != "nofilter") {
-        sqlString += ` AND P.shipping_date = '${shippingDate}'`;
-    }
+    console.log(sqlString);
+    // if (idDesigner != "nofilter") {
+    //     if (idDesigner.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idDesigner.split(search).join(replaceWith);
 
-    if (quantity != "nofilter") {
-        sqlString += ` AND P.Quantity = '${quantity}'`;
-    }
+    //         sqlString += ` AND des.ID in (${result})`;
+    //     } else {
+    //         sqlString += ` AND des.ID = ${idDesigner}`;
+    //     }
+    // }
+    // if (idFabric != "nofilter") {
+    //     if (idFabric.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idFabric.split(search).join(replaceWith);
 
-    if (shippingDate != "nofilter") {
-        sqlString += ` AND P.shipping_date = '${shippingDate}'`;
-    }
+    //         sqlString += ` AND COMF.ID_FABRIC in (${result})`;
+    //     } else {
+    //         sqlString += ` AND COMF.ID_FABRIC = ${idFabric}`;
+    //     }
+    // }
+    // if (idDepartment != "nofilter") {
+    //     if (idDepartment.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idDepartment.split(search).join(replaceWith);
 
-    if (idOrigin != "nofilter") {
-        if (idOrigin.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idOrigin.split(search).join(replaceWith);
-            sqlString += ` AND P.ID_COUNTRY in (${result})`;
-        } else {
-            sqlString += ` AND P.ID_COUNTRY = ${idOrigin}`;
-        }
-    }
-    if (idDestination != "nofilter") {
-        if (idDestination.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idDestination.split(search).join(replaceWith);
-            sqlString += ` AND P.ID_COUNTRY_DESTINATION in (${result})`;
-        } else {
-            sqlString += ` AND P.ID_COUNTRY_DESTINATION = ${idDestination}`;
-        }
-    }
+    //         sqlString += ` AND D.ID in (${result})`;
+    //     } else {
+    //         sqlString += ` AND D.ID = ${idDepartment}`;
+    //     }
+    // }
+    // if (idSupplier != "nofilter") {
+    //     if (idSupplier.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idSupplier.split(search).join(replaceWith);
 
-    if (idShippingType != "nofilter") {
-        if (idShippingType.includes("&")) {
-            const search = "&";
-            const replaceWith = ",";
-            const result = idShippingType.split(search).join(replaceWith);
-            sqlString += ` AND P.id_shipping in (${result})`;
-        } else {
-            sqlString += ` AND P.id_shipping = ${idShippingType}`;
-        }
-    }
+    //         sqlString += ` AND SUPP.ID in (${result})`;
+    //     } else {
+    //         sqlString += ` AND SUPP.ID = ${idSupplier}`;
+    //     }
+    // }
+    // if (idTIPOLOGY != "nofilter") {
+    //     if (idTIPOLOGY.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idTIPOLOGY.split(search).join(replaceWith);
 
-    sqlString += ` GROUP BY P.ID, P.NAME, P.QUANTITY, P.cost, P.WEIGHT, PP.PATH, SUPP.NAME, D.DESCRIPTION, T.NAME, ST.NAME ORDER BY P.ID desc`;
+    //         sqlString += ` AND T.ID in (${result})`;
+    //     } else {
+    //         sqlString += ` AND T.ID = ${idTIPOLOGY}`;
+    //     }
+    // }
+    // if (idStatus != "nofilter") {
+    //     if (idStatus.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idStatus.split(search).join(replaceWith);
 
+    //         sqlString += ` AND ST.ID in (${result})`;
+    //     } else {
+    //         sqlString += ` AND ST.ID = ${idStatus}`;
+    //     }
+    // }
+    // if (ProductName != "nofilter") {
+    //     sqlString += ` AND P.NAME like '%${ProductName}%'`;
+    // }
+    // if (ProductPrice != "nofilter") {
+    //     sqlString += ` AND P.COST = '${ProductPrice}'`;
+    // }
+    // if (ProductWeight != "nofilter") {
+    //     sqlString += ` AND P.WEIGHT = '${ProductWeight}'`;
+    // }
+
+    // if (shippingDate != "nofilter") {
+    //     sqlString += ` AND P.shipping_date = '${shippingDate}'`;
+    // }
+
+    // if (quantity != "nofilter") {
+    //     sqlString += ` AND P.Quantity = '${quantity}'`;
+    // }
+
+    // if (shippingDate != "nofilter") {
+    //     sqlString += ` AND P.shipping_date = '${shippingDate}'`;
+    // }
+
+    // if (idOrigin != "nofilter") {
+    //     if (idOrigin.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idOrigin.split(search).join(replaceWith);
+    //         sqlString += ` AND P.ID_COUNTRY in (${result})`;
+    //     } else {
+    //         sqlString += ` AND P.ID_COUNTRY = ${idOrigin}`;
+    //     }
+    // }
+    // if (idDestination != "nofilter") {
+    //     if (idDestination.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idDestination.split(search).join(replaceWith);
+    //         sqlString += ` AND P.ID_COUNTRY_DESTINATION in (${result})`;
+    //     } else {
+    //         sqlString += ` AND P.ID_COUNTRY_DESTINATION = ${idDestination}`;
+    //     }
+    // }
+
+    // if (idShippingType != "nofilter") {
+    //     if (idShippingType.includes("&")) {
+    //         const search = "&";
+    //         const replaceWith = ",";
+    //         const result = idShippingType.split(search).join(replaceWith);
+    //         sqlString += ` AND P.id_shipping in (${result})`;
+    //     } else {
+    //         sqlString += ` AND P.id_shipping = ${idShippingType}`;
+    //     }
+    // }
+
+    // sqlString += ` GROUP BY P.ID, P.NAME, P.QUANTITY, P.cost, P.WEIGHT, PP.PATH, SUPP.NAME, D.DESCRIPTION, T.NAME, ST.NAME ORDER BY P.ID desc`;
+    console.log("batata");
+    console.log(sqlString)
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {

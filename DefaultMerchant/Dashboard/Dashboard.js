@@ -1,5 +1,6 @@
 var Dashboard = require("../../DefaultMerchant/Dashboard/Dashboard");
 var DashboardRepository = require("../../DAL/DashboardQuerys/Dashboard");
+var MerchantRepository = require("../../DAL/MerchantQuerys/Merchant");
 const { BalanceCategories } = require("./Enums");
 var InspectionCategories = require("../Dashboard/Enums");
 const { resolve } = require("path");
@@ -84,7 +85,98 @@ module.exports = class ImpactaDashboard {
             });
         });
     }
+    //Calidad
+    //Color
+    //Avios
 
+    async getBalanceInfo({idMerchant, idSeason}) {
+        const aviosAttention = 60;
+        const aviosCritical = 50;
+        const fabricAttention = 90;
+        const fabricInCritical = 80;
+        const colorAttention = 60;
+        const colorCritical = 50; 
+        
+        try{
+            const aviosData = await DashboardRepository.getAviosStatusForBalance(idMerchant, idSeason);
+            const aviosBalance =  await this.balanceLogic(aviosCritical, aviosAttention, aviosData);
+            
+    
+            const fabricData = await DashboardRepository.getFabricStatusForBalance(idMerchant, idSeason);
+            const fabricBalance = await this.balanceLogic(fabricInCritical, fabricAttention, fabricData);
+
+
+            const colorData = await DashboardRepository.getFabricColorStatusForBalance(idMerchant, idSeason);
+            const colorBalance = await this.balanceLogic(colorCritical, colorAttention, colorData);
+
+            const sampleData = await DashboardRepository.getSampleStatusForBalance(idMerchant, idSeason);
+            const sampleDataAproval = sampleData.filter(x => x.sampleType === 1);
+            const sampleDataPreProduction = sampleData.filter(x => x.sampleType === 2);
+            const sampleDataProduction = sampleData.filter(x => x.sampleType === 3);
+
+            const sampleDataAprovaleBalance = await this.balanceLogic(90, 100, sampleDataAproval);
+            const sampleDataPreProductionBalance = await this.balanceLogic(50, 60, sampleDataPreProduction);
+            const sampleDataProductionBalance = await this.balanceLogic(40, 45, sampleDataProduction);
+
+            const sampleCount = sampleData.length;
+            const sampleCombinedResult = {
+                dataInAttention: (sampleDataAprovaleBalance.dataInAttention + sampleDataPreProductionBalance.dataInAttention + sampleDataProductionBalance.dataInAttention) / sampleCount * 100,
+                dataInCritical: (sampleDataAprovaleBalance.dataInCritical + sampleDataPreProductionBalance.dataInCritical + sampleDataProductionBalance.dataInCritical) / sampleCount * 100,
+                dataInAllGood: (sampleDataAprovaleBalance.dataInAllGood + sampleDataPreProductionBalance.dataInAllGood + sampleDataProductionBalance.dataInAllGood) / sampleCount * 100
+              };
+              
+            return {
+                avioInCritical: aviosBalance.dataInCritical,
+                aviosInAttention: aviosBalance.dataInAttention,
+                aviosInOk: aviosBalance.dataInAllGood,
+                fabricInCritical: fabricBalance.dataInCritical,
+                fabricInAttention: fabricBalance.dataInAttention,
+                fabricInOk: fabricBalance.dataInAllGood,
+                colorInCritical: colorBalance.dataInCritical,
+                colorInAttention: colorBalance.dataInAttention,
+                colorInOk: colorBalance.dataInAllGood,
+                sampleInCritical: sampleCombinedResult.dataInCritical,
+                sampleInAttention: sampleCombinedResult.dataInAttention,
+                sampleInOk: sampleCombinedResult.dataInAllGood
+            }
+        }catch(exception){
+            console.log(exception)
+        }
+
+      }
+
+    async balanceLogic(inCritical, inAttention, data){
+
+        const totalAviosCount = data.length;
+        const aviosWithPendantStatus = data.filter(x => x.idStatus === 1);
+        
+        let dataInAttention = 0;
+        let dataInCritical = 0;
+        
+        aviosWithPendantStatus.forEach(avio => {
+          const shippingDate = new Date(avio.shippingDate);
+          const daysBeforeShipping = Math.ceil((shippingDate - Date.now()) / (1000 * 60 * 60 * 24));
+          
+          if (daysBeforeShipping < inCritical) {
+            dataInCritical++;
+          } else if (daysBeforeShipping <= inAttention) {
+            dataInAttention++;
+          }
+        });
+        
+        const dataInAllGood = totalAviosCount - dataInAttention - dataInCritical;
+        
+        return {
+          dataInAttention,
+          dataInCritical,
+          dataInAllGood
+        };
+    }
+
+    
+
+
+      
     async getMaterialsSummary(idMerchant, idSeason) {
         return new Promise(function (resolve, reject) {
             DashboardRepository.getMaterialsSummary(
@@ -104,6 +196,65 @@ module.exports = class ImpactaDashboard {
         });
     }
 
+    async SKUandPieces(idMerchant, idSeason) {
+        var result = [];
+        var pieces = await DashboardRepository.SKUandPieces(idMerchant, idSeason);
+        console.log("pieces")
+        console.log(pieces);
+        var tipologies = await DashboardRepository.getTipologiesForSKUandPieces(idMerchant, idSeason);
+        console.log("tipologies")
+        console.log(tipologies);
+        
+        return new Promise(function (resolve, reject) {
+          pieces.map(x => {
+            x.tipologies = tipologies.filter(t => parseInt(t.IdIndustry) === parseInt(x.idIndustry));
+            console.log("nomade");
+            console.log(x.tipologies);
+          });
+      
+          resolve(pieces);
+        });
+      }
+      
+    async getPiecesByColor(idMerchant, idSeason) {
+        console.log("holaa");
+        var response = [];
+        return new Promise(function (resolve, reject) {
+          DashboardRepository.getPiecesByColor(idMerchant, idSeason)
+            .then(async (result) => {
+              await Promise.all(result.map(async (res) => {
+                var sizeCurve = await MerchantRepository.getSizeCurve(res.ID_SIZE_CURVE, res.SIZE_CURVE_TYPE);
+                console.log("hakuna")
+                res.totalPieces = sizeCurve[0].total;
+                // console.log(res)
+                // console.log(sizeCurve)
+                // console.log(sizeCurve.total)
+                response.push({
+                    idColor: res.idColor,
+                    colorDescription: res.colorDescription,
+                    RGB: res.RGB,
+                    totalPieces: res.totalPieces
+                })
+
+                
+              }));
+              resolve(response.reduce((acc, obj) => {
+                const existingObj = acc.find(item => item.idColor === obj.idColor);
+                if (existingObj) {
+                  existingObj.totalPieces += obj.totalPieces;
+                } else {
+                  acc.push(obj);
+                }
+                return acc;
+              }, [])
+              );
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+      }
+
     async getSeasonMargin(idMerchant, idSeason) {
         return new Promise(function (resolve, reject) {
             DashboardRepository.getDataForMarginCalculations(
@@ -118,8 +269,8 @@ module.exports = class ImpactaDashboard {
                             (sumCostInStore / 1.22)) *
                         100;
                     resolve({
-                        PVP: sumCostInStore,
-                        Cost: sumCost,
+                        PVP: roundToFive(sumCostInStore),
+                        Cost:  roundToNinety(sumCost),
                         Margin: res.toFixed(2),
                     });
                 }
@@ -132,6 +283,7 @@ module.exports = class ImpactaDashboard {
         });
     }
 
+    
     async getProductStatusForSeason({ idMerchant, idSeason }) {
         var merchant = new DefaultMerchant();
         return new Promise(function (resolve, reject) {
@@ -141,34 +293,47 @@ module.exports = class ImpactaDashboard {
                         .getMerchantSeason({ idMerchant, idSeason })
                         .then((result) => {
                             if (result.length > 0) {
+                                console.log("hola")
                                 DashboardRepository.getProductsStatus({
                                     idMerchant,
                                     idSeason,
                                 })
                                     .then((result) => {
+                                        console.log(result)
                                         const sum = result.reduce(
                                             (accumulator, object) => {
                                                 return (
                                                     accumulator +
-                                                    object.ProducsPerSeason
+                                                    object.PRODUCSPERSEASON
                                                 );
                                             },
                                             0
                                         );
                                         var arr = [];
                                         var count = 0;
-                                        result.forEach((element) => {
-                                            arr[count] = {
-                                                Status: element.DESCRIPTION,
-                                                Percentage: (
-                                                    (element.ProducsPerSeason *
-                                                        100) /
-                                                    sum
-                                                ).toFixed(2),
-                                            };
-                                            count++;
-                                        });
-                                        resolve(arr);
+                                        try{
+                                            result.forEach((element) => {
+                                                console.log("PRODUCSPERSEASON");
+                                                console.log(element)
+                                                console.log(element.PRODUCSPERSEASON);
+                                            
+                                                arr[count] = {
+                                                    Status: element.DESCRIPTION,
+                                                    Percentage: (
+                                                        (element.PRODUCSPERSEASON *
+                                                            100) /
+                                                        sum
+                                                    ).toFixed(2),
+                                                };
+                                                count++;
+                                            });
+                                            resolve(arr);
+                                        }catch(exception){
+                                            console.log("error");
+                                            console.log(exception)
+                                        }
+
+                                 
                                     })
                                     .catch((err) => {
                                         reject("Error - Whoops algo salió mal");
@@ -192,12 +357,13 @@ module.exports = class ImpactaDashboard {
             if (validateDate) {
                 merchant.merchantExists({ idMerchant }).then((result) => {
                     console.log("2");
+                    console.log(result.length)
                     if (result.length > 0) {
                         merchant
                             .getMerchantSeason({ idMerchant, idSeason })
                             .then((result) => {
                                 console.log("3");
-                                
+                                console.log(result)
                                 if (result.length > 0) {
                                     DashboardRepository.getShippingDates({
                                         idMerchant,
@@ -216,7 +382,7 @@ module.exports = class ImpactaDashboard {
                                         });
                                 } else {
                                     reject(
-                                        "Error - El comercio ingresado no existe"
+                                        "Error - La temporada ingresada no existe."
                                     );
                                 }
                             });
@@ -263,12 +429,14 @@ module.exports = class ImpactaDashboard {
                                                 );
                                             })
                                             .catch((err) => {
+                                                console.log(err);
                                                 reject(
                                                     "Error - Whoops algo salió mal"
                                                 );
                                             });
                                     })
                                     .catch((err) => {
+                                        console.log(err);
                                         reject("Error - Whoops algo salió mal");
                                     });
                             } else {
@@ -381,7 +549,7 @@ function validateDate({ month, year }) {
 function getStatusPercentages(productsStatus) {
     return new Promise(function (resolve, reject) {
         const sum = productsStatus.reduce((accumulator, object) => {
-            return accumulator + object.ProducsPerSeason;
+            return accumulator + object.PRODUCSPERSEASON;
         }, 0);
 
         var arr = [];
@@ -389,10 +557,37 @@ function getStatusPercentages(productsStatus) {
         productsStatus.forEach((element) => {
             arr[count] = {
                 Status: element.DESCRIPTION,
-                Percentage: (element.ProducsPerSeason * 100) / sum,
+                Percentage: (element.PRODUCSPERSEASON * 100) / sum,
             };
             count++;
         });
         resolve(arr);
     });
 }
+
+function roundToNinety(numero) {
+    const residuo = numero % 90;
+
+    // Verifica si el residuo es mayor o igual a la mitad de 90
+    if (residuo >= 45) {
+      // Redondea hacia arriba al múltiplo de 90 más cercano
+      return numero + (90 - residuo);
+    } else {
+      // Redondea hacia abajo al múltiplo de 90 más cercano
+      return numero - residuo;
+    }
+  }
+
+  function roundToFive(numero) {
+    // Calcula el residuo al dividir el número entre 5
+    const residuo = numero % 5;
+  
+    // Verifica si el residuo es mayor o igual a la mitad de 5
+    if (residuo >= 2.5) {
+      // Redondea hacia arriba al múltiplo de 5 más cercano
+      return numero + (5 - residuo);
+    } else {
+      // Redondea hacia abajo al múltiplo de 5 más cercano
+      return numero - residuo;
+    }
+  }

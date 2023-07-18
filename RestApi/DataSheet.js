@@ -19,6 +19,7 @@ router.route("/saveProduct").post((req, res) => {
         });
 });
 router.route("/updateProduct").post((req, res) => {
+    
     const body = req.body;
     currentBrand = new DynamicClass("ImpactaDataSheet");
     currentBrand
