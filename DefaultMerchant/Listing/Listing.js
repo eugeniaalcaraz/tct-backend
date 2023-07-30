@@ -173,7 +173,7 @@ module.exports = class ImpactaListing {
                     const promises = result.map(async (item) => {
                         await managePic(item);
                         item.fabricData = await MerchantRepository.getFabricComposition(item.idFabric);
-          
+                        item.fabricColors = await MerchantRepository.getFabricColors(item.idComboFabric);     
                       });
               
                       await Promise.all(promises);

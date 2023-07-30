@@ -92,7 +92,8 @@ function getBalanceDatesConfig({ idMerchant }) {
 function getShippingDates({ idMerchant, idSeason, month, year }) {
     let stringQuery =
         `SELECT p.SHIPPING_DATE ShippingDate, p.ENTRY_DATE EntryDate, p.WAREHOUSE_ENTRY_DATE WarehouseDate, 
-        pr.NUMBER ProductNumber FROM COMBO_FABRIC p INNER JOIN PRODUCT pr ON p.ID_PRODUCT = pr.ID
+        pr.NUMBER ProductNumber, pr.ID_TIPOLOGY IdTipology, pr.ID_MERCHANT_BRAND IdBrand, pr.ID_SEASON IdSeason  
+        FROM COMBO_FABRIC p INNER JOIN PRODUCT pr ON p.ID_PRODUCT = pr.ID
         INNER JOIN SEASON s ON pr.ID_SEASON = s.ID 
         AND pr.ID_MERCHANT = ${idMerchant} AND MONTH(p.ENTRY_DATE) = ${month} AND YEAR(p.ENTRY_DATE) = ${year}`;
     console.log(stringQuery);
@@ -109,11 +110,12 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
 
 function getProductsStatus({ idMerchant, idSeason }) {
     let stringQuery =
-        "SELECT I.DESCRIPTION Description, COUNT(*) ProducsPerSeason FROM PRODUCT P INNER JOIN INSPECTION I ON I.ID = P.ID_INSPECTION WHERE P.ID_MERCHANT = " +
-        idMerchant +
-        " AND P.ID_SEASON = " +
-        idSeason +
-        " GROUP BY P.ID_INSPECTION";
+        `SELECT I.NAME Description, COUNT(*) ProducsPerSeason 
+        FROM PRODUCT P 
+        INNER JOIN SAMPLE_TYPE I ON I.ID = P.SAMPLE_TYPE 
+        WHERE P.ID_MERCHANT =  ${idMerchant}
+        AND P.ID_SEASON = ${idSeason}
+        GROUP BY P.SAMPLE_TYPE`;
     return new Promise(function (resolve, reject) {
         console.log(stringQuery)
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
@@ -405,8 +407,8 @@ function getPendantAvios(idSeason, idMerchant) {
     console.log("getting pendant avios")
     let sqlString = `
     SELECT COUNT(*) cantidadSinAprobar 
-    FROM COMBO_AVIO_COLOR CAC INNER JOIN COMBO_AVIO CA ON CAC.ID_COMBO_AVIO = CA.ID 
-    INNER JOIN PRODUCT P ON CA.ID_PRODUCT = P.ID WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant} AND CAC.ID_STATUS = 1 ;
+    FROM COMBO_AVIO CA
+    INNER JOIN PRODUCT P ON CA.ID_PRODUCT = P.ID WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant} AND CA.ID_STATUS = 1 ;
         `;
 
     return new Promise(function (resolve, reject) {
@@ -593,7 +595,7 @@ function getPendantQualities(idSeason, idMerchant) {
 }
 function SKUandPieces(idMerchant, idSeason) {
     let sqlString = `
-    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount FROM 
+    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST_IN_STORE) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount FROM 
     PRODUCT P
     INNER JOIN INDUSTRY I ON P.ID_INDUSTRY = I.ID
     INNER JOIN COMBO_FABRIC CF ON CF.ID_PRODUCT = P.ID
@@ -617,7 +619,7 @@ function SKUandPieces(idMerchant, idSeason) {
 }
 function getTipologiesForSKUandPieces(idMerchant, idSeason) {
     let sqlString = `
-    SELECT T.ID idTipology, T.NAME tipologyDescription, T.ID_INDUSTRY IdIndustry, SUM(P.COST) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
+    SELECT T.ID idTipology, T.NAME tipologyDescription, T.ID_INDUSTRY IdIndustry, SUM(P.COST_IN_STORE) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
     FROM TIPOLOGY T 
     INNER JOIN PRODUCT P ON P.ID_TIPOLOGY = T.ID 
     INNER JOIN COMBO_FABRIC CF ON CF.ID_PRODUCT = P.ID

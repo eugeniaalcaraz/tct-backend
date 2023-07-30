@@ -1,4 +1,4 @@
-const pool = require("../configuration/ConfigurationDB");
+const con = require("../configuration/ConfigurationDB");
 const dtoFilters = require("../../DataTransferObject/dtoFilters");
 
 //obtengo datos para llenar los combos
@@ -16,7 +16,7 @@ WHERE
 `;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -31,7 +31,7 @@ function getSupplierName(idMerchant) {
     let sqlString = `select s.ID, s.NAME from supplier s, merchant m, supplier_merchant sm where s.ID = sm.ID_SUPPLIER and sm.ID_MERCHANT = m.ID and m.id = ${idMerchant}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -57,7 +57,7 @@ function getDesigners(idMerchant) {
                         D.ACTIVE = 1`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -102,7 +102,7 @@ function getCountryName(idCountry) {
                         id = ${idCountry}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -119,7 +119,7 @@ function getCountries(idMerchant) {
                         country`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -147,7 +147,7 @@ function getAllOrigins(idMerchant) {
                         country`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -165,7 +165,7 @@ function getGarmentTypes(idMerchant) {
                         TIPOLOGY`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -185,7 +185,7 @@ function getProductsNames(idMerchant) {
                         p.id_merchant = m.id`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -204,7 +204,7 @@ function getProductBysku(productSKU) {
                          SKU =  ${productSKU}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -222,7 +222,7 @@ function getShipmentType(idMerchant) {
                         shipment_type`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -242,7 +242,7 @@ function getStatus(idMerchant) {
                         id <>0`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -259,7 +259,7 @@ function getWeight(idMerchant) {
                         PRODUCT`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -280,7 +280,7 @@ function getQuality(idMerchant) {
                         and f.id_merchant = ${idMerchant}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -298,7 +298,7 @@ function getShippingTypes(idMerchant) {
                         SHIPPING_TYPE`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -317,7 +317,7 @@ function getDepartments(idMerchant) {
                           DEPARTMENT`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 return reject("error" + err);
@@ -337,7 +337,7 @@ function getTipologies(idMerchant) {
                       TIPOLOGY`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -363,7 +363,7 @@ function getProductPicture(idMerchant, idProduct) {
                         P.ID = ${idProduct}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -402,7 +402,7 @@ function getAllProducts(idMerchant, idSeason) {
     AND s.ID = ${idSeason}`;
 
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 return reject("error" + err);
             }
@@ -427,6 +427,7 @@ function getAllProductsWithFilters(
         MU.DESCRIPTION managmentUnit,
         I.DESCRIPTION industry,
         T.NAME tipology,
+        T.ID idTipology,
         MBF.DESCRIPTION bodyFit,
         StatProd.NAME statusProduct,
         StatFab.NAME statusFabric,
@@ -438,6 +439,7 @@ function getAllProductsWithFilters(
         StatSample.NAME statusSample,
         P.SAMPLE_DATE statusSampleDate,
         C.DESCRIPTION concept,
+        CF2.IdComboFabric idComboFabric,
         CF2.ShippingType shippingType,
         CF2.max_shipping_date shippingDate,
         CF2.ENTRY_DATE entryDate,
@@ -470,10 +472,11 @@ function getAllProductsWithFilters(
             MAX(CF.SHIPPING_DATE) AS max_shipping_date, 
             MAX(CF.ENTRY_DATE) AS ENTRY_DATE, 
             MAX(CF.WAREHOUSE_ENTRY_DATE) AS WAREHOUSE_ENTRY_DATE, 
-            ST.NAME as ShippingType
+            ST.NAME as ShippingType,
+            CF.ID as IdComboFabric
             FROM COMBO_FABRIC CF
             INNER JOIN SHIPPING_TYPE ST ON CF.ID_SHIPPING = ST.ID
-            GROUP BY CF.ID_PRODUCT, CF.ID_STATUS, CF.STATUS_DATE, ST.NAME, CF.ID_FABRIC
+            GROUP BY CF.ID_PRODUCT, CF.ID_STATUS, CF.STATUS_DATE, ST.NAME, CF.ID_FABRIC, CF.ID
         ) CF2 ON P.ID = CF2.ID_PRODUCT 
         INNER JOIN STATUS StatFab ON CF2.ID_STATUS = StatFab.ID
         LEFT OUTER JOIN (
@@ -484,11 +487,12 @@ function getAllProductsWithFilters(
             GROUP BY CA.ID_PRODUCT, CA.ID_STATUS, CA.STATUS_DATE
         ) CA2 ON P.ID = CA2.ID_PRODUCT
         LEFT JOIN STATUS StatAvio ON CA2.ID_STATUS = StatAvio.ID
-        LEFT JOIN STATUS StatModeling ON P.ID_STATUS_MEASUREMENT_TABLE = StatModeling.ID
+        LEFT JOIN STATUS StatModeling ON P.ID_MODELING_STATUS = StatModeling.ID
         LEFT JOIN STATUS StatSample ON P.ID_SAMPLE_STATUS = StatSample.ID
 
         `
     ;
+
     if (entryDate != "nofilter") {
         sqlString += ` INNER JOIN (
             SELECT CFED.ENTRY_DATE, CFED.ID_PRODUCT
@@ -513,7 +517,7 @@ function getAllProductsWithFilters(
             FROM COMBO_FABRIC CFSHIP
             GROUP BY CFSHIP.ID_PRODUCT,  CFSHIP.ID_SHIPPING ) SHIPTABLE ON SHIPTABLE.ID_SHIPPING = ${idShippingType}`;
     }
-    sqlString += ` WHERE P.ID_MERCHANT = ${idMerchant} `;
+    sqlString += ` WHERE P.ID_MERCHANT = ${idMerchant}  `;
     //sqlString += `WHERE P.ID_MERCHANT = ${idMerchant}`
     if (prodName != "nofilter") {
         let newName = prodName.replace('%', ' ');
@@ -547,132 +551,9 @@ function getAllProductsWithFilters(
         sqlString += ` AND C.ID = ${idConcept}`;
     }
 
-    console.log(sqlString);
-    // if (idDesigner != "nofilter") {
-    //     if (idDesigner.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idDesigner.split(search).join(replaceWith);
-
-    //         sqlString += ` AND des.ID in (${result})`;
-    //     } else {
-    //         sqlString += ` AND des.ID = ${idDesigner}`;
-    //     }
-    // }
-    // if (idFabric != "nofilter") {
-    //     if (idFabric.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idFabric.split(search).join(replaceWith);
-
-    //         sqlString += ` AND COMF.ID_FABRIC in (${result})`;
-    //     } else {
-    //         sqlString += ` AND COMF.ID_FABRIC = ${idFabric}`;
-    //     }
-    // }
-    // if (idDepartment != "nofilter") {
-    //     if (idDepartment.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idDepartment.split(search).join(replaceWith);
-
-    //         sqlString += ` AND D.ID in (${result})`;
-    //     } else {
-    //         sqlString += ` AND D.ID = ${idDepartment}`;
-    //     }
-    // }
-    // if (idSupplier != "nofilter") {
-    //     if (idSupplier.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idSupplier.split(search).join(replaceWith);
-
-    //         sqlString += ` AND SUPP.ID in (${result})`;
-    //     } else {
-    //         sqlString += ` AND SUPP.ID = ${idSupplier}`;
-    //     }
-    // }
-    // if (idTIPOLOGY != "nofilter") {
-    //     if (idTIPOLOGY.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idTIPOLOGY.split(search).join(replaceWith);
-
-    //         sqlString += ` AND T.ID in (${result})`;
-    //     } else {
-    //         sqlString += ` AND T.ID = ${idTIPOLOGY}`;
-    //     }
-    // }
-    // if (idStatus != "nofilter") {
-    //     if (idStatus.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idStatus.split(search).join(replaceWith);
-
-    //         sqlString += ` AND ST.ID in (${result})`;
-    //     } else {
-    //         sqlString += ` AND ST.ID = ${idStatus}`;
-    //     }
-    // }
-    // if (ProductName != "nofilter") {
-    //     sqlString += ` AND P.NAME like '%${ProductName}%'`;
-    // }
-    // if (ProductPrice != "nofilter") {
-    //     sqlString += ` AND P.COST = '${ProductPrice}'`;
-    // }
-    // if (ProductWeight != "nofilter") {
-    //     sqlString += ` AND P.WEIGHT = '${ProductWeight}'`;
-    // }
-
-    // if (shippingDate != "nofilter") {
-    //     sqlString += ` AND P.shipping_date = '${shippingDate}'`;
-    // }
-
-    // if (quantity != "nofilter") {
-    //     sqlString += ` AND P.Quantity = '${quantity}'`;
-    // }
-
-    // if (shippingDate != "nofilter") {
-    //     sqlString += ` AND P.shipping_date = '${shippingDate}'`;
-    // }
-
-    // if (idOrigin != "nofilter") {
-    //     if (idOrigin.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idOrigin.split(search).join(replaceWith);
-    //         sqlString += ` AND P.ID_COUNTRY in (${result})`;
-    //     } else {
-    //         sqlString += ` AND P.ID_COUNTRY = ${idOrigin}`;
-    //     }
-    // }
-    // if (idDestination != "nofilter") {
-    //     if (idDestination.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idDestination.split(search).join(replaceWith);
-    //         sqlString += ` AND P.ID_COUNTRY_DESTINATION in (${result})`;
-    //     } else {
-    //         sqlString += ` AND P.ID_COUNTRY_DESTINATION = ${idDestination}`;
-    //     }
-    // }
-
-    // if (idShippingType != "nofilter") {
-    //     if (idShippingType.includes("&")) {
-    //         const search = "&";
-    //         const replaceWith = ",";
-    //         const result = idShippingType.split(search).join(replaceWith);
-    //         sqlString += ` AND P.id_shipping in (${result})`;
-    //     } else {
-    //         sqlString += ` AND P.id_shipping = ${idShippingType}`;
-    //     }
-    // }
-
-    // sqlString += ` GROUP BY P.ID, P.NAME, P.QUANTITY, P.cost, P.WEIGHT, PP.PATH, SUPP.NAME, D.DESCRIPTION, T.NAME, ST.NAME ORDER BY P.ID desc`;
-    console.log("batata");
     console.log(sqlString)
     return new Promise(function (resolve, reject) {
-        pool.query(sqlString, function (err, rows, fields) {
+        con.query(sqlString, function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 return reject("error" + err);

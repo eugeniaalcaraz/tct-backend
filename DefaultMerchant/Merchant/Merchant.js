@@ -6,12 +6,13 @@ module.exports = class ImpactaMerchant {
 
     }
 
-    async getProduct(idProduct) {
+    async getProduct(productNumber, idSeason, idMerchant) {
         console.log("buenaass")
         try {
-          let productData = await MerchantRepository.getProduct(idProduct);
+          let productData = await MerchantRepository.getProductFromNumber(productNumber, idSeason, idMerchant);
+          console.log("banana")
           console.log(productData);
-          let productPicture = await MerchantRepository.getProductPicture(idProduct);
+          let productPicture = await MerchantRepository.getProductPicture(productData[0].id);
           try{
             productPicture = await managePic(productPicture);
             productData[0].measurementTable = iconv.decode(productData[0].measurementTable, 'utf-8');
@@ -21,7 +22,7 @@ module.exports = class ImpactaMerchant {
             console.log(exception);
           }
           let cmbFab = [];
-          let comboFabric = await MerchantRepository.getComboFabric(idProduct);
+          let comboFabric = await MerchantRepository.getComboFabric(productData[0].id);
           
           await Promise.all(comboFabric.map(async (comboFab) => {
             let comboColorsPromise = MerchantRepository.getComboFabricColors(comboFab.id);
@@ -30,17 +31,19 @@ module.exports = class ImpactaMerchant {
             comboFab.comboColors = await comboColorsPromise;
             comboFab.comboPrints = await comboPrintsPromise;
             comboFab.composition = await composition;
-            cmbFab.push(comboFab);
 
-            console.log(productData)
             try{
+                console.log("BANDERAS");
+                console.log(comboFab);
                 await Promise.all(comboFab.comboColors.map(async (color) => {
-                    color.sizeCurve = await MerchantRepository.getSizeCurve(color.idSizeCurve, productData[0].sizeCurveType);
-                  }));
+                    let res = await MerchantRepository.getSizeCurve(color.idSizeCurve, productData[0].sizeCurveType);
+                    color.sizeCurve = Object.values(res[0]).filter(value => typeof value === 'number');
+                }));
     
                   await Promise.all(comboFab.comboPrints.map(async (print) => {
-                    print.sizeCurve = await MerchantRepository.getSizeCurve(print.idSizeCurve, productData[0].sizeCurveType);
-                  }));
+                    let res = await MerchantRepository.getSizeCurve(print.idSizeCurve, productData[0].sizeCurveType);
+                    print.sizeCurve = Object.values(res[0]).filter(value => typeof value === 'number');
+                }));
             }catch(exception){
                 console.log("de sizeCuvre")
                 console.log(exception);
@@ -51,7 +54,7 @@ module.exports = class ImpactaMerchant {
           }));
           let comboAvio;
           try{
-            comboAvio = await MerchantRepository.getComboAvio(idProduct);
+            comboAvio = await MerchantRepository.getComboAvio(productData[0].id);
             await Promise.all(comboAvio.map(async (combAv) => {
               let comboAviosColorsPromise = MerchantRepository.getComboAviosColors(combAv.id);
                 
@@ -64,7 +67,7 @@ module.exports = class ImpactaMerchant {
           return {
             basicInfo : productData,
             productPicture: productPicture,
-            fabrics: cmbFab,
+            fabrics: comboFabric,
             avios: comboAvio
           };
 
@@ -223,6 +226,16 @@ module.exports = class ImpactaMerchant {
        });
     }
 
+    getAllTipologies(idIndustry){
+        console.log("buscnado tipology")
+        return new Promise(function(resolve, reject){
+            MerchantRepository.getAllTipologies().then(result => {
+                resolve(result);
+            }).catch(err => {
+                reject("Error - Whoops algo salió mal");
+            });
+       });
+    }
 
     getFibers(){
         return new Promise(function(resolve, reject){

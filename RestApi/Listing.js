@@ -202,6 +202,8 @@ router.route("/getTipologies/:idMerchant").get((req, res) => {
         });
 });
 
+
+
 router.route("/").get((req, res) => {
     res.send("HOLA LISTING");
 });

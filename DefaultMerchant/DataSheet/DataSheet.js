@@ -17,23 +17,28 @@ module.exports = class ImpactaDataSheet {
   async updateProduct(data) {
     console.log("update product");
     const self = this; // Almacenar referencia al contexto de this
-  
+    let product = await merchantRepository.getProduct(data.idProduct);
+    console.log(product.length);
     return new Promise(async function(resolve, reject) {
-    await self.saveNewProduct(data).then(result => {
-      if(result){
-        merchantRepository.deleteComboFabricColor(data.idProduct).then(result => {
-          merchantRepository.deleteComboFabricPrint(data.idProduct).then(result => {
-            merchantRepository.deleteComboFabric(data.idProduct).then(result => {
-              merchantRepository.deleteProduct(data.idProduct).then(async result => {
-                merchantRepository.deleteProductPicture(data.idProduct)(async result => {
-                  resolve(true);
-                })
+    if(product.length > 0){
+        await self.saveNewProduct(data).then(result => {
+          if(result){
+            merchantRepository.deleteComboFabricColor(data.idProduct).then(result => {
+              merchantRepository.deleteComboFabricPrint(data.idProduct).then(result => {
+                merchantRepository.deleteComboFabric(data.idProduct).then(result => {
+                  merchantRepository.deleteProductData(data.idProduct).then(result => {
+                    merchantRepository.deleteProductPicture(data.idProduct).then(async result => {
+                        resolve(true);
+                    });
+                  })
+                });
               });
             });
-          });
-        });
-      }
-    });
+          }
+        });   
+    }else{
+       resolve("El id del producto ingresado no existe");
+    }
   })
   }
 
@@ -54,8 +59,17 @@ module.exports = class ImpactaDataSheet {
             return;
           }
         }
-        //merchantRepository.startTransaction();
-        let prodNumber = await merchantRepository.getProductNumber(data.idSeason);
+        let prodNumber; 
+        try{
+          if(data.idProduct > 0){
+            prodNumber = data.productNumber;
+          }else{
+            prodNumber = await merchantRepository.getProductNumber(data.idSeason);
+          }
+        }catch(exception){
+           prodNumber = await merchantRepository.getProductNumber(data.idSeason);
+        }
+        
         idProduct = await saveProduct(data, prodNumber);
         await savePictures(data, idProduct);
         let savedFabrics = await saveFabrics(data);
@@ -70,15 +84,24 @@ module.exports = class ImpactaDataSheet {
           }
         }
         try{
-          await handleFabricCombo(savedFabrics, idProduct, data);
-          //merchantRepository.commit();
-          console.log("sal del himalaya");
-          console.log(data.result)
-          resolve(data.result);
+          await handleFabricCombo2(savedFabrics, idProduct, data);
+          await handleAvioCombo(idProduct, data, savedFabrics);
+          resolve(true);
         }catch(exception){
-          merchantRepository.rollback();
-          console.log("error");
-          console.log(exception);
+          merchantRepository.deleteComboFabricColor(idProduct).then(result => {
+            merchantRepository.deleteComboFabricPrint(idProduct).then(result => {
+              merchantRepository.deleteComboFabric(idProduct).then(result => {
+                merchantRepository.deleteProductData(idProduct).then(result => {
+                  merchantRepository.deleteProductPicture(idProduct).then(async result => {
+                    console.log("fatal error");
+                    console.log(exception);
+                    resolve(false);
+                  });
+                })
+              });
+            });
+          });
+
         }
       });
     } catch (exception) {
@@ -92,19 +115,137 @@ module.exports = class ImpactaDataSheet {
 
 
 };
+async function saveComboFabric(savedFabrics, idProduct, data) {
+  console.log("001");
 
+  let fabricComboPromises = savedFabrics.map(async (fab, i) =>
+    await merchantRepository.insertComboFabric2(fab, idProduct)
+  );
+
+  return new Promise((resolve, reject) => {
+    Promise.all(fabricComboPromises)
+      .then((results) => {
+        const insertedIdsWithData = results.map((comboFabricReturns) => ({
+          insertedId: comboFabricReturns.id, // Replace 'id' with the correct property name for the inserted ID
+          data: comboFabricReturns.fabric, // Replace 'data' with the correct property name for the data
+        }));
+        resolve(insertedIdsWithData);
+        console.log(insertedIdsWithData);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        reject(error);
+      });
+  });
+}
+
+async function handleFabricCombo2(savedFabrics, idProduct, data) {
+  try {
+    insertedCombos = await saveComboFabric(savedFabrics, idProduct, data);
+
+    await Promise.all(
+      insertedCombos.map(async (combo) => {
+        for (const p of combo.data.prints) {
+          const combosWithIdPrint = await merchantRepository.savePrint2(combo, p.description, p.colorCount);
+          const idSizeCurve = await saveSizeCurveDatasheet(c.sizeCurve, data.sizeCurve);
+          await merchantRepository.savePrintFabricCombo2(combosWithIdPrint.combo, combosWithIdPrint.idPrint, combo.data.idStatus, idSizeCurve);
+        }
+      })
+    );
+
+    await Promise.all(
+      insertedCombos.map(async (combo) => {
+        for (const c of combo.data.colors) {
+          const idSizeCurve = await saveSizeCurveDatasheet(c.sizeCurve, data.sizeCurveType);
+          await merchantRepository.saveColorFabricCombo2(combo.insertedId, c.idColor, combo.data.idStatus, idSizeCurve);
+        }
+      })
+    );
+
+  } catch (ex) {
+    console.log("hola exe");
+    throw ex;
+  }
+}
+async function saveComboAvio(idProduct, data, savedFabrics) {
+  console.log("001");
+
+  let avioComboPromises = data.avios.map(async (av, i) =>
+    await merchantRepository.saveComboAvio(av, idProduct, savedFabrics[0].entryDate, 
+                                           savedFabrics[0].warehouseEntryDate, savedFabrics[0].shippingDate,
+                                           savedFabrics[0].idShipping, savedFabrics[0].idCountryDestination)
+  );
+
+  return new Promise((resolve, reject) => {
+    Promise.all(avioComboPromises)
+      .then((results) => {
+        const insertedIdsWithData = results.map((comboAviosReturns) => ({
+          insertedId: comboAviosReturns.id, // Replace 'id' with the correct property name for the inserted ID
+          data: comboAviosReturns.avio, // Replace 'data' with the correct property name for the data
+        }));
+        resolve(insertedIdsWithData);
+        console.log(insertedIdsWithData);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        reject(error);
+      });
+  });
+}
+async function handleAvioCombo(idProduct, data, savedFabrics) {
+  try {
+    insertedCombos = await saveComboAvio(idProduct, data, savedFabrics);
+    console.log(insertedCombos);
+    await Promise.all(
+
+      insertedCombos.map(async (combo) => {
+        for (const c of combo.data.colors) {
+          await merchantRepository.saveComboAvioColor(combo.insertedId, c.idColor, combo.data.idStatus);
+        }
+      })
+    );
+
+  } catch (ex) {
+    console.log("hola exe");
+    throw ex;
+  }
+}
+async function saveSizeCurveDatasheet(sizeCurve, idSizeCurveType){
+  console.log(sizeCurve);
+  console.log(idSizeCurveType);
+  try{
+    if(idSizeCurveType === sizeCurveEnum.shoe){
+      return await merchantRepository.saveSizeCurveShoes2(data.sizeCurveType);
+    }else if(idSizeCurveType === sizeCurveEnum.clothes){
+      return await merchantRepository.saveSizeCurveClothes2(sizeCurve);
+    }else{
+      console.log("es denim")
+      return await merchantRepository.saveSizeCurveDenim2(sizeCurve);
+    }
+  }catch(ex){
+    console.log("salio algo mal guardando la curva de talles")
+    throw(ex);
+  }
+
+}
+
+async function getProduct(idProduct) {
+  try {
+    const result = await merchantRepository.getProduct(idProduct);
+    if (result.length > 0) {
+      return result;
+    } else {
+      throw new Error("Error - El producto enviado no existe.");
+    }
+  } catch (error) {
+    throw error;
+  }
+}
 
 async function handleFabricCombo(savedFabrics, idProduct, data) {
   console.log("001");
-  console.log(savedFabrics[0]); 
-  let idCombo;
-
-    let warehouseEntryDate = savedFabrics[0].warehouseEntryDate;
-    let entryDate = savedFabrics[0].entryDate;
-    let shippingDate = savedFabrics[0].shippingDate;
-    let idShipping = savedFabrics[0].idShipping;
-    let idCountryDestination = savedFabrics[0].idCountryDestination;
-
+  
+    const fabricComboPromises = [];
     let fabricCombo = savedFabrics.map(async (fab, i) =>
      await merchantRepository.saveComboFabric(data,
         fab.idFabric,
@@ -123,31 +264,52 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
         fab.idStatus
       )
     );
-         Promise.all(fabricCombo).then(async (results) => {
-          let aviosCombo = data.avios.map(async (av) =>
-           await merchantRepository.saveComboAvio(
-              av.idAvio,
-              idCountryDestination,
-              idProduct,
-              entryDate,
-              warehouseEntryDate,
-              shippingDate,
-              idShipping,
-              av.quantity,
-              av.idStatus,
-              av.colors));
 
-          Promise.all(aviosCombo)
-            .then((results) => {
-              console.log("todo bien guardando combo avios")
-              return true;
-            })
-            .catch((err) => {
-              console.log(err)
-              data.result = false;
-              throw new Error("Error - Algo salio mal al guardar los avios");
-            });
-        });
+
+
+    Promise.all(fabricComboPromises)
+  .then((results) => {
+    const insertedIdsWithData = results.map((comboFabricReturns) => ({
+      insertedId: comboFabricReturns.id, // Replace 'id' with the correct property name for the inserted ID
+      data: comboFabricReturns.data, // Replace 'data' with the correct property name for the data
+    }));
+
+    // 'insertedIdsWithData' will be an array of objects containing the inserted ID and data for each 'fab' object.
+    console.log(insertedIdsWithData);
+  })
+  .catch((error) => {
+    // Handle errors if any of the promises fail.
+    console.error('Error:', error);
+  });
+        //  Promise.all(fabricCombo).then(async (results) => {
+          
+
+
+        //   //TODO: COMENTE ESTO
+        //   // let aviosCombo = data.avios.map(async (av) =>
+        //   //  await merchantRepository.saveComboAvio(
+        //   //     av.idAvio,
+        //   //     idCountryDestination,
+        //   //     idProduct,
+        //   //     entryDate,
+        //   //     warehouseEntryDate,
+        //   //     shippingDate,
+        //   //     idShipping,
+        //   //     av.quantity,
+        //   //     av.idStatus,
+        //   //     av.colors));
+
+        //   // Promise.all(aviosCombo)
+        //   //   .then((results) => {
+        //   //     console.log("todo bien guardando combo avios")
+        //   //     return true;
+        //   //   })
+        //   //   .catch((err) => {
+        //   //     console.log(err)
+        //   //     data.result = false;
+        //   //     throw new Error("Error - Algo salio mal al guardar los avios");
+        //   //   });
+        // });
 }
 
 async function getProduct(idProduct) {
@@ -239,16 +401,20 @@ async function saveFabrics(data) {
                   shippingDate: element.shippingDate,
                   idShipping: element.idShipping,
                   sizeCurve: element.sizeCurve,
-                  idStatus: element.idStatus
+                  idStatus: element.idStatus,
+                  quantity: element.quantity
                 })
         }else{
           data.result = false;
           throw Error("El id de la tela ingresado no se encuentra en el sistema.");
         }
       }else{
+        console.log("la teka no existe")
         promises.push(
           merchantRepository.saveNewFabricInternal(data.idMerchant, element)
           .then(result => {
+            console.log("grrr")
+            console.log(result)
             if (result > 0) {
               fabrics.push({
                 idFabric: result,
@@ -266,7 +432,8 @@ async function saveFabrics(data) {
                 shippingDate: element.shippingDate,
                 idShipping: element.idShipping,
                 sizeCurve: element.sizeCurve,
-                idStatus: element.idStatus
+                idStatus: element.idStatus,
+                quantity: element.quantity
               });
             }
           })
