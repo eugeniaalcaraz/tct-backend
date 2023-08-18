@@ -611,8 +611,7 @@ async function saveNewFabricInternal(idMerchant, fabric) {
     saveNewFabric(idMerchant, fabric.description, fabric.weight).then(
       (result) => {
         let idFabric = result.idFab;
-        console.log("jajajaj");
-        console.log(idFabric)
+        console.log(idFabric);
         if (!result.exists) {
           if (fabric.composition.length > 0) {
             fabric.composition.forEach(async (element) => {
@@ -629,6 +628,7 @@ async function saveNewFabricInternal(idMerchant, fabric) {
           }
         }else{
           resolve(idFabric);
+          
         }
       }
     );

@@ -202,15 +202,47 @@ module.exports = class ImpactaDashboard {
         console.log("pieces")
         console.log(pieces);
         var tipologies = await DashboardRepository.getTipologiesForSKUandPieces(idMerchant, idSeason);
+        var idIndustries = tipologies.map(item => item.IdIndustry.toString()).join(',');
         console.log("tipologies")
         console.log(tipologies);
-        
-        return new Promise(function (resolve, reject) {
-          pieces.map(x => {
-            x.tipologies = tipologies.filter(t => parseInt(t.IdIndustry) === parseInt(x.idIndustry));
-            console.log("nomade");
-            console.log(x.tipologies);
+        console.log(idIndustries);
+        var countCombos = await DashboardRepository.getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant);
+        console.log("combo counts");
+        console.log(countCombos);
+
+         tipologies = tipologies.map(item => {
+            const matchingItem = countCombos.find(
+              match => match.IdTipology === item.idTipology && match.IdIndustry === item.IdIndustry
+            );
+          
+            if (matchingItem) {
+              return {
+                ...item,
+                comboColorCount: matchingItem.comboColorCount,
+                comboPrintCount: matchingItem.comboPrintCount
+              };
+            } else {
+              return item;
+            }
           });
+
+        console.log("final array");
+        console.log(tipologies);
+        return new Promise(function (resolve, reject) {
+            try{
+                pieces.map(x => {
+                    const matchingTipologies = tipologies.filter(t => parseInt(t.IdIndustry) === parseInt(x.idIndustry));
+                    
+                    x.comboColorCount = matchingTipologies.reduce((sum, tipology) => sum + tipology.comboColorCount, 0);
+                    x.comboPrintCount = matchingTipologies.reduce((sum, tipology) => sum + tipology.comboPrintCount, 0);
+                    x.tipologies = matchingTipologies;
+                    
+                    console.log(x.tipologies);
+                  });
+            }catch(exception){
+                console.log(exception)
+            }
+
       
           resolve(pieces);
         });

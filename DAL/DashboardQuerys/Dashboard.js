@@ -149,7 +149,7 @@ function getMaterialsSummary(idMerchant, idSeason) {
 }
 function getDataForMarginCalculations(idMerchant, idSeason) {
     let stringQuery =
-        "SELECT SUM(COST) as sumCost, SUM(COST_IN_STORE) as sumCostInStore FROM PRODUCT WHERE ID_SEASON = " +
+        "SELECT (SUM(COST) * SUM(QUANTITY)) as sumCost, (SUM(COST_IN_STORE) * SUM(QUANTITY)) as sumCostInStore FROM PRODUCT WHERE ID_SEASON = " +
         idSeason +
         " AND ID_MERCHANT = " +
         idMerchant;
@@ -595,12 +595,10 @@ function getPendantQualities(idSeason, idMerchant) {
 }
 function SKUandPieces(idMerchant, idSeason) {
     let sqlString = `
-    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST_IN_STORE) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount FROM 
+    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST_IN_STORE) cost, 
+    SUM(P.QUANTITY) quantity FROM 
     PRODUCT P
     INNER JOIN INDUSTRY I ON P.ID_INDUSTRY = I.ID
-    INNER JOIN COMBO_FABRIC CF ON CF.ID_PRODUCT = P.ID
-    LEFT JOIN COMBO_FABRIC_COLOR CFC ON CF.ID = CFC.ID_COMBO_FABRIC
-    LEFT JOIN COMBO_FABRIC_PRINT CFP ON CF.ID = CFP.ID_COMBO_FABRIC
     WHERE
         P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant}
@@ -617,18 +615,43 @@ function SKUandPieces(idMerchant, idSeason) {
         });
     });
 }
-function getTipologiesForSKUandPieces(idMerchant, idSeason) {
+function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
     let sqlString = `
-    SELECT T.ID idTipology, T.NAME tipologyDescription, T.ID_INDUSTRY IdIndustry, SUM(P.COST_IN_STORE) cost, SUM(P.QUANTITY) quantity, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
-    FROM TIPOLOGY T 
-    INNER JOIN PRODUCT P ON P.ID_TIPOLOGY = T.ID 
-    INNER JOIN COMBO_FABRIC CF ON CF.ID_PRODUCT = P.ID
+    SELECT P.ID_TIPOLOGY IdTipology, P.ID_INDUSTRY IdIndustry, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
+    FROM PRODUCT P
+    INNER JOIN COMBO_FABRIC CF ON P.ID = CF.ID_PRODUCT
     LEFT JOIN COMBO_FABRIC_COLOR CFC ON CF.ID = CFC.ID_COMBO_FABRIC
     LEFT JOIN COMBO_FABRIC_PRINT CFP ON CF.ID = CFP.ID_COMBO_FABRIC
     WHERE
         P.ID_SEASON = ${idSeason} AND
+        P.ID_MERCHANT = ${idMerchant} AND
+        P.ID_INDUSTRY IN (${idIndustries})
+    GROUP BY P.ID_TIPOLOGY, P.ID_INDUSTRY`;
+    
+    return new Promise(function (resolve, reject) {
+        pool.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                console.log(err)
+                return reject(err);
+            }
+
+            resolve(rows);
+        });
+    });
+}
+
+
+
+function getTipologiesForSKUandPieces(idMerchant, idSeason) {
+    let sqlString = `
+    SELECT T.ID idTipology, T.NAME tipologyDescription, T.ID_INDUSTRY IdIndustry, 
+    (SUM(P.COST) * SUM(P.QUANTITY)) cost, SUM(P.QUANTITY) quantity
+    FROM TIPOLOGY T 
+    INNER JOIN PRODUCT P ON P.ID_TIPOLOGY = T.ID 
+    WHERE
+        P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant}
-    GROUP BY T.ID, T.NAME, T.ID_INDUSTRY;`;
+    GROUP BY T.ID, T.NAME, T.ID_INDUSTRY;`
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -801,3 +824,4 @@ module.exports.getFabricStatusForBalance = getFabricStatusForBalance;
 module.exports.getFabricColorStatusForBalance = getFabricColorStatusForBalance;
 module.exports.getFabricPrintStatusForBalance = getFabricPrintStatusForBalance;
 module.exports.getSampleStatusForBalance = getSampleStatusForBalance;
+module.exports.getCountCombosForSKUandPieces = getCountCombosForSKUandPieces;

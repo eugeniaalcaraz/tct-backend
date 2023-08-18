@@ -7,6 +7,7 @@ const user = require("./RestApi/User");
 const listing = require("./RestApi/Listing");
 const approvals = require("./RestApi/Approvals");
 const dataSheet = require("./RestApi/DataSheet");
+//const supplier = require("./RestApi/Suppliers");
 const bodyParser = require("body-parser");
 const connection = require("./DAL/configuration/ConfigurationDB")
 const fs = require("fs");
@@ -43,6 +44,7 @@ app.use("/user", user);
 app.use("/listing", listing);
 app.use("/approvals", approvals);
 app.use("/dataSheet", dataSheet);
+//app.use("/supplier", supplier);
 
 app.get("/", (req, res) => {
 

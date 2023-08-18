@@ -4,6 +4,7 @@ const ImpactaListing = require('../DefaultMerchant/Listing/Listing');
 const ImpactaApprovals = require('../DefaultMerchant/Approvals/Approvals');
 const ImpactaMerchant = require('../DefaultMerchant/Merchant/Merchant');
 const ImpactaDataSheet = require('../DefaultMerchant/DataSheet/DataSheet');
+const ImpactaSupplier = require('../DefaultMerchant/Supplier/Supplier');
 
 const classes = {
     ImpactaDashboard,
@@ -11,6 +12,7 @@ const classes = {
     ImpactaDataSheet,
     ImpactaListing,
     ImpactaApprovals,
+    ImpactaSupplier
 };
 
 module.exports = class DynamicClass {
