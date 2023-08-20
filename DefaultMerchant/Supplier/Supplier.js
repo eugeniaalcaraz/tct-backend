@@ -8,6 +8,8 @@ module.exports = class ImpactaSupplier {
     }
 
 
+ 
+
     async getSupplierFormInfo(){
         var supplierInfo;
         var supplierTypes = await supplierRepository.getSupplierTypes();
@@ -25,6 +27,42 @@ module.exports = class ImpactaSupplier {
                 'peopleCertifications':  peopleCertifications,
                 'planetCertifications': planetCertifications};
     }
+
+    async getSupplier(idSupplier){
+        return new Promise(async function(resolve, reject){
+        console.log("Buscando el proveedor: " +  idSupplier);
+        var supplierBasicData = await supplierRepository.getSupplier(idSupplier);
+        var supplierProductTypes = await supplierRepository.getProductTypesForSupplierId(idSupplier);
+        var supplierCertifications = await supplierRepository.getSupplierCertifications(idSupplier);
+        console.log(supplierBasicData);
+        console.log(supplierProductTypes);
+
+        resolve({
+            'supplierTypeId': supplierBasicData[0].supplierTypeId,
+            'alias': supplierBasicData[0].alias,
+            'idCountry':  supplierBasicData[0].idCountry,
+            'commercialName':  supplierBasicData[0].commercialName,
+            'address': supplierBasicData[0].address,
+            'contactPerson': supplierBasicData[0].contactPerson,
+            'email':  supplierBasicData[0].email,
+            'commercialRelationDate': supplierBasicData[0].commercialRelationDate,
+            'estimatedAnualOrder': supplierBasicData[0].estimatedAnualOrder,
+            'anualContract':  supplierBasicData[0].anualContract === 1 ? true : false,
+            'womenEmployees': supplierBasicData[0].womenEmployees,
+            'menEmployees': supplierBasicData[0].menEmployees,
+            'totalEmployees': supplierBasicData[0].totalEmployees,
+            'idMerchant': supplierBasicData[0].idMerchant,
+            'performance': supplierBasicData[0].performance,
+            'productTypes': supplierProductTypes.map(item => item.productTypeId),
+            'supplierCertifications': supplierCertifications.map(item => ({
+                ...item,
+                category: item.category === "1" ? "planet" : "people"
+              }))
+        })    
+
+        });
+    }
+
 
     saveSupplier(data){
         return new Promise(async function(resolve, reject){
@@ -51,6 +89,8 @@ const prioritizePerformance = ['A', 'B', 'C', 'D'];
 // Generate all possible combinations of certifications
 function generateCombinations(certifications) {
   const result = [[]];
+  console.log("certific")
+  console.log(certifications);
   for (const cert of certifications) {
     const current = [...result];
     for (const combo of current) {
@@ -90,8 +130,14 @@ function getHighestPriorityPerformance(performances) {
 function determinePerformance(certifications, performanceRules) {
   if(certifications.length > 0){
     const combinations = generateCombinations(certifications);
+    console.log("comb")
+    console.log(combinations);
     const performances = combinations.map(combination => findMatchingPerformance(combination, performanceRules));
+    console.log("perf")
+    console.log(performances);
     const highestPriorityPerformance = getHighestPriorityPerformance(performances);
+    console.log("highestPriorityPerformance")
+    console.log(highestPriorityPerformance);
     return highestPriorityPerformance;
   }
   return 'D';

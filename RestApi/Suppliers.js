@@ -33,6 +33,21 @@ router.route("/getSupplierFormData").get((req, res) => {
         });
 });
 
+router.route("/getSupplier/:IdSupplier").get((req, res) => {
+    const body = req.body;
+    currentBrand = new DynamicClass("ImpactaSupplier");
+    currentBrand
+        .getSupplier(req.params.IdSupplier)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
 router.route("/getSupplierTypes/:IdMerchant").get((req, res) => {
     // currentBrand = new DynamicClass("ImpactaMerchant");
     // currentBrand
