@@ -78,7 +78,7 @@ module.exports = class ImpactaSupplier {
                 console.log("holaaaa")
                 reject(exception.toString());
             }
-            resolve("hola");
+            resolve(true);
         });
 
     }

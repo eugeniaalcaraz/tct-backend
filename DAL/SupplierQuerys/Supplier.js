@@ -2,7 +2,7 @@ const con = require("../configuration/ConfigurationDB");
 
 
 function getSupplierPeopleCertifications() {
-    let stringQuery = `SELECT DESCRIPTION description,TYPE type, SUBCATEGORY subCat, COMMENT_GENERIC_PLANET commentGenericPlanet,
+    let stringQuery = `SELECT ID id,DESCRIPTION description,TYPE type, SUBCATEGORY subCat, COMMENT_GENERIC_PLANET commentGenericPlanet,
     COMMENT_GENERIC_QUIMICALS commentGenericQuimicals, COMMENT_GENERIC_MATERIALS commentGenericMaterials, 
     COMMENT_GENERIC_PEOPLE commentGenericPeople, IS_CHECKBOX isCheckbox, 'people' as category FROM PEOPLE_CERTIFICATION;`;
     return new Promise(function (resolve, reject) {
@@ -19,7 +19,7 @@ function getSupplierPeopleCertifications() {
   }
 
   function getSupplierPlanetCertifications() {
-    let stringQuery = `SELECT DESCRIPTION description,TYPE type, SUBCATEGORY subCat, COMMENT_GENERIC_PLANET commentGenericPlanet,
+    let stringQuery = `SELECT ID id, DESCRIPTION description,TYPE type, SUBCATEGORY subCat, COMMENT_GENERIC_PLANET commentGenericPlanet,
     COMMENT_GENERIC_QUIMICALS commentGenericQuimicals, COMMENT_GENERIC_MATERIALS commentGenericMaterials, 
     COMMENT_GENERIC_PEOPLE commentGenericPeople, 'planet' as category FROM PLANET_CERTIFICATION;`;
     return new Promise(function (resolve, reject) {
