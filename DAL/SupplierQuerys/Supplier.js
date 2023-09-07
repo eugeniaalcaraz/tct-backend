@@ -99,13 +99,133 @@ function saveSupplierCertifications(supplierId, certificationId, certificationTy
     });
   }
 
+  
+function deleteSupplierCertifications(supplierId) {
+    let stringQuery = `DELETE FROM SUPPLIER_CERTIFICATIONS WHERE ID_SUPPLIER = ${supplierId}`;
+    return new Promise(function (resolve, reject) {
+        console.log(stringQuery);
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
+        resolve(rows.insertId);
+      });
+    });
+  }
+
+  function updateSupplier(data, performance) {
+
+    var dataAdded = false;
+    let stringQuery = "UPDATE SUPPLIER_DEVELOP SET ";
+
+    if(data.alias !== undefined && data.alias !== null){
+        stringQuery += ` ALIAS = '${data.alias}'`;
+        dataAdded = true;
+    };
+    if(data.commercialName !== undefined && data.commercialName !== null){
+        dataAdded = true;
+        if(!dataAdded){
+            stringQuery += ` COMMERCIAL_NAME = '${data.commercialName}'`;
+        }else{
+            stringQuery += `, COMMERCIAL_NAME = '${data.commercialName}'`;;
+        }
+    };
+    if(data.address !== undefined && data.address !== null){
+        dataAdded = true;
+        if(!dataAdded){
+            stringQuery += ` ADDRESS = '${data.address}' `;
+        }else{
+            stringQuery += `, ADDRESS = '${data.address}' `;
+        }
+    };
+    if(data.contactPerson !== undefined && data.contactPerson !== null){
+        dataAdded = true;
+        if(!dataAdded){
+            stringQuery += ` CONTACT_PERSON = '${data.contactPerson}'`;
+        }else{
+            stringQuery += `, CONTACT_PERSON = '${data.contactPerson}'`;
+        }
+    };
+    if(data.email !== undefined && data.email !== null){
+        if(!dataAdded){
+            stringQuery += ` EMAIL = '${data.email}'`;
+        }else{
+            stringQuery += `, EMAIL = '${data.email}'`;
+        }
+    };
+    if(data.commercialRelationDate !== undefined && data.commercialRelationDate !== null){
+        if(!dataAdded){
+            stringQuery += " COMMERCIAL_RELATION_DATE = " + getFormattedDate(data.commercialRelationDate);
+        }else{
+            stringQuery += ", COMMERCIAL_RELATION_DATE = " + getFormattedDate(data.commercialRelationDate);
+        }
+    };
+    if(data.estimatedAnualOrder !== undefined && data.estimatedAnualOrder !== null){
+        if(!dataAdded){
+            stringQuery += " ESTIMATED_ANUAL_ORDER = " + data.estimatedAnualOrder;
+        }else{
+            stringQuery += ", ESTIMATED_ANUAL_ORDER = " + data.estimatedAnualOrder;
+        }
+    };
+    if(data.anualContract !== undefined && data.anualContract !== null){
+        if(!dataAdded){
+            stringQuery += " ANUAL_CONTRACT = " + data.anualContract ? 1 : 0;
+        }else{
+            stringQuery += ", ANUAL_CONTRACT = " + data.anualContract ? 1 : 0;
+        }
+    };
+    if(data.employees.women !== undefined){
+        if(!dataAdded){
+            stringQuery += " WOMEN_EMPLOYEES = " + data.employees.women;
+        }else{
+            stringQuery += ", WOMEN_EMPLOYEES = " + data.employees.women;
+        }
+    };
+    if(data.employees.men !== undefined){
+        if(!dataAdded){
+            stringQuery += " MEN_EMPLOYEES = " + data.employees.men;
+        }else{
+            stringQuery += ", MEN_EMPLOYEES = " + data.employees.men;
+        }
+    };
+    if(data.employees.total !== undefined && data.employees.total !== null){
+        if(!dataAdded){
+            stringQuery += " TOTAL_EMPLOYEES = " + data.employees.total;
+        }else{
+            stringQuery += ", TOTAL_EMPLOYEES = " + data.employees.total;
+        }
+    };
+    if(performance !== undefined && performance !== null){
+        if(!dataAdded){
+            stringQuery += " PERFORMANCE = " + performance;
+        }else{
+            stringQuery += ", PERFORMANCE = " + performance;
+        }
+    };
+
+    stringQuery += " WHERE ID = " + data.id;
+
+    return new Promise(function (resolve, reject) {
+        console.log(stringQuery);
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
+        resolve(rows.insertId);
+      });
+    });
+  }
+
+
 function saveSupplier(data, performance) {
     var date =  getFormattedDate(data.commercialRelationDate);
     let stringQuery = `INSERT INTO SUPPLIER_DEVELOP (SUPPLIER_TYPE_ID, ALIAS,ID_COUNTRY,COMMERCIAL_NAME,ADDRESS,
 	CONTACT_PERSON, EMAIL, COMMERCIAL_RELATION_DATE, ESTIMATED_ANUAL_ORDER,HAS_ANUAL_CONTRACT,WOMEN_EMPLOYEES,
-	MEN_EMPLOYEES,TOTAL_EMPLOYEES, ID_MERCHANT, PERFORMANCE) VALUES (${data.supplierTypeId}, '${data.alias}', ${data.idCountry}, '${data.commercialName}',
+	MEN_EMPLOYEES,TOTAL_EMPLOYEES, ID_MERCHANT, PERFORMANCE, VAT_NUMBER) VALUES (${data.supplierTypeId}, '${data.alias}', ${data.idCountry}, '${data.commercialName}',
         '${data.address}', '${data.contactPerson}', '${data.email}', ${date}, ${data.estimatedAnualOrder},
-        ${data.anualContract}, ${data.employees.women},  ${data.employees.men},  ${data.employees.total}, ${data.idMerchant}, '${performance}')`;
+        ${data.anualContract}, ${data.employees.women},  ${data.employees.men},  ${data.employees.total}, ${data.idMerchant}, '${performance}', ${data.vatNumber})`;
     return new Promise(function (resolve, reject) {
         console.log(stringQuery);
       con.query(stringQuery, function (err, rows, fields) {
@@ -123,7 +243,7 @@ function saveSupplier(data, performance) {
     let stringQuery = `SELECT SUPPLIER_TYPE_ID supplierTypeId, ALIAS alias,ID_COUNTRY idCountry,COMMERCIAL_NAME commercialName,
     ADDRESS address, CONTACT_PERSON contactPerson, EMAIL email, COMMERCIAL_RELATION_DATE commercialRelationDate, 
     ESTIMATED_ANUAL_ORDER estimatedAnualOrder,HAS_ANUAL_CONTRACT anualContract,WOMEN_EMPLOYEES womenEmployees,
-	MEN_EMPLOYEES menEmployees,TOTAL_EMPLOYEES totalEmployees, ID_MERCHANT idMerchant, PERFORMANCE performance FROM SUPPLIER_DEVELOP WHERE ID = ${idSupplier}`;
+	MEN_EMPLOYEES menEmployees,TOTAL_EMPLOYEES totalEmployees, ID_MERCHANT idMerchant, PERFORMANCE performance, VAT_NUMBER vatNumber FROM SUPPLIER_DEVELOP WHERE ID = ${idSupplier}`;
     return new Promise(function (resolve, reject) {
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
@@ -133,6 +253,21 @@ function saveSupplier(data, performance) {
         resolve(rows);
       });
     });
+  }
+  function deleteProductTypes(idSupplier){
+    function saveSupplierProductTypes(supplierId, productTypeId) {
+        let stringQuery = `DELETE SUPPLIER_PRODUCT_TYPES WHERE ID_SUPPLIER = ${supplierId}`;
+        return new Promise(function (resolve, reject) {
+            console.log(stringQuery);
+          con.query(stringQuery, function (err, rows, fields) {
+            if (err) {
+              console.log(err);
+              return reject(err);
+            }
+            resolve(rows.insertId);
+          });
+        });
+      }
   }
   function saveSupplierProductTypes(supplierId, productTypeId) {
     let stringQuery = `INSERT INTO SUPPLIER_PRODUCT_TYPES (ID_SUPPLIER,PRODUCT_TYPE_ID) VALUES (${supplierId}, ${productTypeId})`;
@@ -195,3 +330,6 @@ module.exports.getSupplierPlanetCertifications = getSupplierPlanetCertifications
 module.exports.getSupplier = getSupplier;
 module.exports.getProductTypesForSupplierId = getProductTypesForSupplierId;
 module.exports.getSupplierCertifications = getSupplierCertifications;
+module.exports.updateSupplier = updateSupplier;
+module.exports.deleteProductTypes = deleteProductTypes;
+module.exports.deleteSupplierCertifications = deleteSupplierCertifications;

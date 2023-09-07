@@ -63,7 +63,36 @@ module.exports = class ImpactaSupplier {
         });
     }
 
+    updateSupplier(data){
+        return new Promise(async function(resolve, reject){
+            var performance = null;
+            try{
+                validateObligatoryDataForUpdate(data);
+                validateOptionalDataForUpdate(data);
+                if(data.id === undefined && data.id === null){
+                    reject("Debe ingresar el id del proveedor que esta tratando de modificar.");
+                };
+                if(data.productTypes !== undefined && data.productTypes !== null){
+                    supplierRepository.deleteProductTypes(data.id);
+                    await saveSupplierProductTypes(data.id, data);
+                };
+                if(data.certification !== undefined && data.certification !== null){
+                    supplierRepository.deleteSupplierCertifications(data.id);
+                    var performanceRules = await getSupplierPerformanceConfiguration();
+                    performance = determinePerformance(data.certifications, performanceRules);
+                    await saveSupplierCertifications(data.id, data);
+                };
+                supplierRepository.updateSupplier(data, performance);
+            }catch(exception){
+                reject(exception.toString());
+            }
+            resolve(true);
+        });
+    }
 
+    getAllSuppliersForMerchant(idMerchant){
+
+    }
     saveSupplier(data){
         return new Promise(async function(resolve, reject){
             try{
@@ -75,7 +104,6 @@ module.exports = class ImpactaSupplier {
                 await saveSupplierProductTypes(supplierId, data);
                 await saveSupplierCertifications(supplierId, data);
             }catch(exception){
-                console.log("holaaaa")
                 reject(exception.toString());
             }
             resolve(true);
@@ -130,14 +158,8 @@ function getHighestPriorityPerformance(performances) {
 function determinePerformance(certifications, performanceRules) {
   if(certifications.length > 0){
     const combinations = generateCombinations(certifications);
-    console.log("comb")
-    console.log(combinations);
     const performances = combinations.map(combination => findMatchingPerformance(combination, performanceRules));
-    console.log("perf")
-    console.log(performances);
     const highestPriorityPerformance = getHighestPriorityPerformance(performances);
-    console.log("highestPriorityPerformance")
-    console.log(highestPriorityPerformance);
     return highestPriorityPerformance;
   }
   return 'D';
@@ -210,12 +232,21 @@ async function saveSupplierProductTypes(supplierId, data) {
     }
 }
 
-
+function validateOptionalDataForUpdate(data){
+    if(data.commercialName !== undefined && data.commercialName !== null){
+        validateCommercialName(data.commercialName);
+    }
+    if(data.address !== undefined && data.address !== null){
+        validateAddress(data.address);
+    }
+    if(data.estimatedAnualOrder !== undefined && data.estimatedAnualOrder !== null){
+        validateOrderEstimate(data.estimatedAnualOrder);
+    }
+}
 function validateOptionalData(data){
     validateCommercialName(data.commercialName);
     validateAddress(data.address);
     validateOrderEstimate(data.estimatedAnualOrder);
-
 }
 function validateOrderEstimate(estimatedAnualOrder){
     if(estimatedAnualOrder !== undefined){
@@ -241,6 +272,29 @@ function validateAddress(address){
         }
     }
 }
+function validateObligatoryDataForUpdate(data){
+    if(data.supplierType !== undefined && data.supplierType !== null){
+        validateSupplierType(data.supplierTypeId);
+    }
+    if(data.alias !== undefined && data.alias !== null){
+        validateAlias(data.alias);
+    }
+    if(data.vatNumber !== undefined && data.vatNumber !== null){
+        validateVatNumber(data.vatNumber);
+    }
+    if(data.idCountry !== undefined && data.idCountry !== null){
+        validateIdCountry(data.idCountry);
+    }
+    if(data.anualContract !== undefined && data.anualContract !== null){
+        validateAnualContract(data.anualContract);
+    }
+    if(data.productTypes !== undefined && data.productTypes !== null){
+        validateProductTypes(data.productTypes);
+    }
+    if(data.employees !== undefined && data.employees !== null){
+        validateEmployees(data.employees);
+    }
+}
 function validateObligatoryData(data){
     validateMerchant(data.idMerchant);
     validateSupplierType(data.supplierTypeId);
@@ -249,6 +303,7 @@ function validateObligatoryData(data){
     validateIdCountry(data.idCountry);
     validateAnualContract(data.anualContract);
     validateProductTypes(data.productTypes);
+    validateEmployees(data.employees);
 }
 
 function validateProductTypes(productTypes) {
@@ -267,9 +322,9 @@ function validateEmployees(employees){
     }else if(employees.total === undefined || employees.total < 1){
         console.log(employees.total);
         throw new Error("Total invalido");
-    }else if(employees.women < 0){
+    }else if(employees !== null && employees.women < 0){
         throw new Error("Cantidad de personal femenino invalido");
-    }else if(employees.men < 0){
+    }else if(employees !== null && employees.men < 0){
         throw new Error("Cantidad de personal masculino invalido");
     }else if(employees.women > 0 && employees.men > 0 && (employees.men + employees.women) !== employees.total){
         throw new Error("El total de empleados no coincide con los subtotales ingresados");

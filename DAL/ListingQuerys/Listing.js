@@ -558,6 +558,7 @@ function getAllProductsWithFilters(
                 console.log(err);
                 return reject("error" + err);
             }
+            console.log(rows);
             resolve(rows);
         });
     });
