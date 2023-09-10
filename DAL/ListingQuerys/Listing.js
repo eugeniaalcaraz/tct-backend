@@ -347,6 +347,64 @@ function getTipologies(idMerchant) {
     });
 }
 
+
+function getDetailForListing(idProduct) {
+    let sqlString = ` SELECT DISTINCT
+    StatProd.NAME statusProduct,
+    StatFab.NAME statusFabric,
+    CF2.STATUS_DATE statusFabricDate,
+    StatAvio.NAME statusAvio,
+    CA2.STATUS_DATE statusAvioDate,
+    StatModeling.NAME statusModeling,
+    P.MODELING_DATE statusModelingDate,
+    StatSample.NAME statusSample,
+    P.SAMPLE_DATE statusSampleDate,
+    CF2.IdComboFabric idComboFabric,
+    CF2.ShippingType shippingType,
+    CF2.max_shipping_date shippingDate,
+    CF2.ENTRY_DATE entryDate,
+    CF2.WAREHOUSE_ENTRY_DATE warehouseEntryDate,
+    CF2.ID_FABRIC idFabric
+FROM
+    PRODUCT P
+    INNER JOIN STATUS StatProd ON P.ID_STATUS = StatProd.ID
+    INNER JOIN (
+        SELECT CF.ID_PRODUCT, 
+        CF.ID_FABRIC,
+        CF.ID_STATUS, 
+        CF.STATUS_DATE, 
+        MAX(CF.SHIPPING_DATE) AS max_shipping_date, 
+        MAX(CF.ENTRY_DATE) AS ENTRY_DATE, 
+        MAX(CF.WAREHOUSE_ENTRY_DATE) AS WAREHOUSE_ENTRY_DATE, 
+        ST.NAME as ShippingType,
+        CF.ID as IdComboFabric
+        FROM COMBO_FABRIC CF
+        INNER JOIN SHIPPING_TYPE ST ON CF.ID_SHIPPING = ST.ID
+        GROUP BY CF.ID_PRODUCT, CF.ID_STATUS, CF.STATUS_DATE, ST.NAME, CF.ID_FABRIC, CF.ID
+    ) CF2 ON P.ID = CF2.ID_PRODUCT 
+    INNER JOIN STATUS StatFab ON CF2.ID_STATUS = StatFab.ID
+    LEFT OUTER JOIN (
+        SELECT CA.ID_PRODUCT, 
+        CA.ID_STATUS, 
+        CA.STATUS_DATE, MAX(CA.SHIPPING_DATE) AS max_shipping_date
+        FROM COMBO_AVIO CA
+        GROUP BY CA.ID_PRODUCT, CA.ID_STATUS, CA.STATUS_DATE
+    ) CA2 ON P.ID = CA2.ID_PRODUCT
+    LEFT JOIN STATUS StatAvio ON CA2.ID_STATUS = StatAvio.ID
+    LEFT JOIN STATUS StatModeling ON P.ID_MODELING_STATUS = StatModeling.ID
+    LEFT JOIN STATUS StatSample ON P.ID_SAMPLE_STATUS = StatSample.ID
+    WHERE P.ID = ${idProduct}`;
+
+    return new Promise(function (resolve, reject) {
+        con.query(sqlString, function (err, rows, fields) {
+            if (err) {
+                return reject("error" + err);
+            }
+            resolve(rows);
+        });
+        //con.releaseConnection();
+    });
+}
 //OBTENGO DATOS PARA DEVOLVER LISTADO
 
 //PICTURE
@@ -454,7 +512,7 @@ function getAllProductsWithFilters(
     FROM
         PRODUCT P
         LEFT OUTER JOIN PRODUCT_PICTURE PP ON P.ID = PP.ID_PRODUCT
-        INNER JOIN SUPPLIER S ON P.ID_SUPPLIER = S.ID
+        INNER JOIN SUPPLIER S ON P.ID_SUPPLIER = S.ID 
         INNER JOIN LINE L ON P.ID_LINE = L.ID
         INNER JOIN MANAGMENT_UNIT MU ON MU.ID = P.ID_MANAGMENT_UNIT
         INNER JOIN INDUSTRY I ON P.ID_INDUSTRY = I.ID 
@@ -517,7 +575,7 @@ function getAllProductsWithFilters(
             FROM COMBO_FABRIC CFSHIP
             GROUP BY CFSHIP.ID_PRODUCT,  CFSHIP.ID_SHIPPING ) SHIPTABLE ON SHIPTABLE.ID_SHIPPING = ${idShippingType}`;
     }
-    sqlString += ` WHERE P.ID_MERCHANT = ${idMerchant}  `;
+    sqlString += ` WHERE P.ID_MERCHANT = ${idMerchant} `;
     //sqlString += `WHERE P.ID_MERCHANT = ${idMerchant}`
     if (prodName != "nofilter") {
         let newName = prodName.replace('%', ' ');
@@ -580,3 +638,4 @@ module.exports.getProductsNames = getProductsNames;
 module.exports.getCountries = getCountries;
 module.exports.getTipologies = getTipologies;
 module.exports.getDepartments = getDepartments;
+module.exports.getDetailForListing = getDetailForListing;

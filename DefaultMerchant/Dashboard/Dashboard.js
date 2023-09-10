@@ -199,11 +199,11 @@ module.exports = class ImpactaDashboard {
     async SKUandPieces(idMerchant, idSeason) {
         var result = [];
         var pieces = await DashboardRepository.SKUandPieces(idMerchant, idSeason);
-        console.log("pieces")
+        console.log("pieces") //Id_inudstry = IdManagmentUnit
         console.log(pieces);
         var tipologies = await DashboardRepository.getTipologiesForSKUandPieces(idMerchant, idSeason);
         var idIndustries = tipologies.map(item => item.IdIndustry.toString()).join(',');
-        console.log("tipologies")
+        console.log("tipologies") //idTipology ES ID INDUSTRY , IdIndustry ES IDmANAGMENTUNIT
         console.log(tipologies);
         console.log(idIndustries);
         var countCombos = await DashboardRepository.getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant);

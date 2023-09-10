@@ -149,7 +149,7 @@ function getMaterialsSummary(idMerchant, idSeason) {
 }
 function getDataForMarginCalculations(idMerchant, idSeason) {
     let stringQuery =
-        "SELECT (SUM(COST) * SUM(QUANTITY)) as sumCost, (SUM(COST_IN_STORE) * SUM(QUANTITY)) as sumCostInStore FROM PRODUCT WHERE ID_SEASON = " +
+        "SELECT SUM(COST * QUANTITY) as sumCost, SUM(COST_IN_STORE * QUANTITY) as sumCostInStore FROM PRODUCT WHERE ID_SEASON = " +
         idSeason +
         " AND ID_MERCHANT = " +
         idMerchant;
@@ -595,10 +595,10 @@ function getPendantQualities(idSeason, idMerchant) {
 }
 function SKUandPieces(idMerchant, idSeason) {
     let sqlString = `
-    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST_IN_STORE) cost, 
+    SELECT I.ID idIndustry, I.DESCRIPTION industryDescription, SUM(P.COST * P.QUANTITY) cost, 
     SUM(P.QUANTITY) quantity FROM 
     PRODUCT P
-    INNER JOIN INDUSTRY I ON P.ID_INDUSTRY = I.ID
+    INNER JOIN MANAGMENT_UNIT I ON P.ID_MANAGMENT_UNIT = I.ID
     WHERE
         P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant}
@@ -614,10 +614,10 @@ function SKUandPieces(idMerchant, idSeason) {
             resolve(rows);
         });
     });
-}
+}//Id_inudstry = IdManagmentUnit /idTipology ES ID INDUSTRY
 function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
     let sqlString = `
-    SELECT P.ID_TIPOLOGY IdTipology, P.ID_INDUSTRY IdIndustry, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
+    SELECT P.ID_INDUSTRY IdTipology, P.ID_MANAGMENT_UNIT IdIndustry, COUNT(CFC.ID) comboColorCount, COUNT(CFP.ID) comboPrintCount
     FROM PRODUCT P
     INNER JOIN COMBO_FABRIC CF ON P.ID = CF.ID_PRODUCT
     LEFT JOIN COMBO_FABRIC_COLOR CFC ON CF.ID = CFC.ID_COMBO_FABRIC
@@ -625,8 +625,8 @@ function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
     WHERE
         P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant} AND
-        P.ID_INDUSTRY IN (${idIndustries})
-    GROUP BY P.ID_TIPOLOGY, P.ID_INDUSTRY`;
+        P.ID_MANAGMENT_UNIT IN (${idIndustries})
+    GROUP BY P.ID_INDUSTRY, P.ID_MANAGMENT_UNIT`;
     
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
@@ -634,7 +634,8 @@ function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
                 console.log(err)
                 return reject(err);
             }
-
+            console.log("holaaaaaaaaaaaaaa");
+            console.log(rows)
             resolve(rows);
         });
     });
@@ -644,14 +645,15 @@ function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
 
 function getTipologiesForSKUandPieces(idMerchant, idSeason) {
     let sqlString = `
-    SELECT T.ID idTipology, T.NAME tipologyDescription, T.ID_INDUSTRY IdIndustry, 
-    (SUM(P.COST) * SUM(P.QUANTITY)) cost, SUM(P.QUANTITY) quantity
-    FROM TIPOLOGY T 
-    INNER JOIN PRODUCT P ON P.ID_TIPOLOGY = T.ID 
+    SELECT T.ID idTipology, T.DESCRIPTION tipologyDescription, IMU.ID_MANAGMENT_UNIT IdIndustry, 
+    SUM(P.COST * P.QUANTITY) cost, SUM(P.QUANTITY) quantity 
+    FROM INDUSTRY T 
+    INNER JOIN INDUSTRY_MANAGMENT_UNIT IMU ON IMU.ID_INDUSTRY = T.ID
+    INNER JOIN PRODUCT P ON P.ID_MANAGMENT_UNIT = IMU.ID_MANAGMENT_UNIT AND T.ID = P.ID_INDUSTRY
     WHERE
         P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant}
-    GROUP BY T.ID, T.NAME, T.ID_INDUSTRY;`
+    GROUP BY T.ID, T.DESCRIPTION, IMU.ID;`
 
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
