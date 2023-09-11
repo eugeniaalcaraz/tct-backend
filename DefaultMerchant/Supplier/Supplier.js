@@ -8,7 +8,6 @@ module.exports = class ImpactaSupplier {
     }
 
 
- 
 
     async getSupplierFormInfo(){
         var supplierInfo;
@@ -27,7 +26,12 @@ module.exports = class ImpactaSupplier {
                 'peopleCertifications':  peopleCertifications,
                 'planetCertifications': planetCertifications};
     }
-
+    getAllSuppliersForMerchant(idMerchant){
+        var basicInfo = getSupplierForFilter(idMerchant);
+        //armar supplier ids
+        var certifications = getSuppliersCertifications(supplierIds);
+    }
+ 
     async getSupplier(idSupplier){
         return new Promise(async function(resolve, reject){
         console.log("Buscando el proveedor: " +  idSupplier);
@@ -90,9 +94,7 @@ module.exports = class ImpactaSupplier {
         });
     }
 
-    getAllSuppliersForMerchant(idMerchant){
 
-    }
     saveSupplier(data){
         return new Promise(async function(resolve, reject){
             try{

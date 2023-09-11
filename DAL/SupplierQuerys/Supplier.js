@@ -84,6 +84,26 @@ function getSupplierCertifications(supplierId) {
     });
   }
 
+  function getSuppliersCertifications(supplierId) {
+    let stringQuery = `SELECT 
+                        ID idSupplier,
+                        CERTIFICATION_ID id, 
+                        CERTIFICATION_TYPE category, 
+                        CERTIFICATION_SUBCATEGORY subCat 
+                        FROM SUPPLIER_CERTIFICATIONS
+                        WHERE ID_SUPPLIER IN ${supplierId}`;
+    return new Promise(function (resolve, reject) {
+        console.log(stringQuery);
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
+
 function saveSupplierCertifications(supplierId, certificationId, certificationType, certificationSubcategory) {
     let stringQuery = `INSERT INTO SUPPLIER_CERTIFICATIONS (ID_SUPPLIER, CERTIFICATION_ID, CERTIFICATION_TYPE, CERTIFICATION_SUBCATEGORY ) 
     VALUES (${supplierId}, ${certificationId}, '${certificationType}', '${certificationSubcategory}')`;
@@ -296,6 +316,22 @@ function saveSupplier(data, performance) {
       });
     });
   }
+
+  function getProductTypesForSuppliersId(supplierId) {
+    let stringQuery = `SELECT ID_SUPPLIER idSupplier,
+                       PRODUCT_TYPE_ID productTypeId 
+                       FROM SUPPLIER_PRODUCT_TYPES WHERE ID_SUPPLIER IN ${supplierId}`;
+    return new Promise(function (resolve, reject) {
+        console.log(stringQuery);
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
   
   function getFormattedDate(strDate) {
     let date = new Date(strDate);
@@ -308,6 +344,28 @@ function saveSupplier(data, performance) {
 
   function getSupplierPerformanceRules() {
     let stringQuery = `SELECT ID Id, PERFORMANCE Performance, RULE Rule FROM SUPPLIER_PERFORMANCE_CONFIGURATION`;
+    return new Promise(function (resolve, reject) {
+        console.log(stringQuery);
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  }
+
+  function getSupplierForFilter(idMerchant) {
+    let stringQuery = `
+    SELECT S.ID id, S.PERFORMANCE performance, S.ALIAS alias, 
+    ST.DESCRIPTION supplierType, S.COMMERCIAL_NAME commercialName, 
+    C.NAME Country, S.CONTACT_PERSON contactPerson, S.EMAIL email, 
+    S.TOTAL_EMPLOYEES totalEmployees, C.HIGH_RISK_NO_COMPLIANCE countryInHighRisk
+    FROM SUPPLIER_DEVELOP S
+    INNER JOIN SUPPLIER_TYPE ST ON S.SUPPLIER_TYPE_ID = ST.ID
+    INNER JOIN COUNTRY C ON S.ID_COUNTRY = C.ID
+    WHERE S.ID_MERCHANT = ${idMerchant};`;
     return new Promise(function (resolve, reject) {
         console.log(stringQuery);
       con.query(stringQuery, function (err, rows, fields) {
@@ -333,3 +391,6 @@ module.exports.getSupplierCertifications = getSupplierCertifications;
 module.exports.updateSupplier = updateSupplier;
 module.exports.deleteProductTypes = deleteProductTypes;
 module.exports.deleteSupplierCertifications = deleteSupplierCertifications;
+module.exports.getSupplierForFilter = getSupplierForFilter;
+module.exports.getSuppliersCertifications = getSuppliersCertifications;
+module.exports.getProductTypesForSuppliersId = getProductTypesForSuppliersId;
