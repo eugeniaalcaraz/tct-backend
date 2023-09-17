@@ -172,8 +172,8 @@ module.exports = class ImpactaListing {
                 idTipology,idConcept,idLine,idBodyFit,entryDate,warehouseEntryDate,storeDate,idShippingType,idFabric,prodName).then(async result => {
                     const promises = result.map(async (item) => {
                         await managePic(item);
-                        item.fabricData = await MerchantRepository.getFabricComposition(item.idFabric);
-                        item.fabricColors = await MerchantRepository.getFabricColors(item.idComboFabric);     
+                        //item.fabricData = await MerchantRepository.getFabricComposition(item.idFabric);
+                        //item.fabricColors = await MerchantRepository.getFabricColors(item.idComboFabric);     
                       });
               
                       await Promise.all(promises);
@@ -185,8 +185,26 @@ module.exports = class ImpactaListing {
         })
     };
 
+    async getDetailProductForListing(idProduct) {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const result = await ListingRepository.getDetailForListing(idProduct);
+            if (result.length > 0) {
+              const item = result[0]; // Assuming you only want the first item
+              item.fabricData = await MerchantRepository.getFabricComposition(item.idFabric);
+              item.fabricColors = await MerchantRepository.getFabricColors(item.idComboFabric);
+              resolve(item);
+            } else {
+              reject("No data found");
+            }
+          } catch (err) {
+            reject("Error: " + err);
+          }
+        });
+      }
+    }
 
-}
+
 async function managePic(item){
     console.log("poocahontas")
     console.log(item);

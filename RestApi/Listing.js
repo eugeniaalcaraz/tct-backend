@@ -52,6 +52,19 @@ router
             });
     });
 
+    router.route("/getDetailProduct/:idProduct").get((req, res) => {
+        currentBrand = new DynamicClass("ImpactaListing");
+        currentBrand
+            .getDetailProductForListing(req.params.idProduct)
+            .then((result) => {
+                res.status(200);
+                res.send(result);
+            })
+            .catch((err) => {
+                res.status(400);
+                res.send(err);
+            });
+    });
 router.route("/getShippingTypes/:idMerchant").get((req, res) => {
     //
     currentBrand = new DynamicClass("ImpactaListing");
