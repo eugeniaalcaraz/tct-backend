@@ -199,7 +199,7 @@ module.exports = class ImpactaDashboard {
     async SKUandPieces(idMerchant, idSeason) {
         var result = [];
         var pieces = await DashboardRepository.SKUandPieces(idMerchant, idSeason);
-        console.log("pieces") //Id_inudstry = IdManagmentUnit
+        console.log("pieces") //Id_inudstry = IdManagmentUnit /idTipology ES ID INDUSTRY
         console.log(pieces);
         var tipologies = await DashboardRepository.getTipologiesForSKUandPieces(idMerchant, idSeason);
         var idIndustries = tipologies.map(item => item.IdIndustry.toString()).join(',');
