@@ -62,6 +62,22 @@ router.route("/getSupplier/:IdSupplier").get((req, res) => {
         });
 });
 
+
+router.route("/getSuppliersForMerchant/:IdMerchant").get((req, res) => {
+    console.log("getting all suppliers");
+    currentBrand = new DynamicClass("ImpactaSupplier");
+    currentBrand
+        .getAllSuppliersForMerchant(req.params.IdMerchant)
+        .then((result) => {
+            res.status(200);
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(400);
+            res.send(err);
+        });
+});
+
 router.route("/getSupplierTypes/:IdMerchant").get((req, res) => {
     // currentBrand = new DynamicClass("ImpactaMerchant");
     // currentBrand

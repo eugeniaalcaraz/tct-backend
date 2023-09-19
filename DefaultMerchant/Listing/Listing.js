@@ -206,8 +206,6 @@ module.exports = class ImpactaListing {
 
 
 async function managePic(item){
-    console.log("poocahontas")
-    console.log(item);
     if(item.pic !== null){
         item.pic = iconv.decode(item.pic, 'utf-8');
     }

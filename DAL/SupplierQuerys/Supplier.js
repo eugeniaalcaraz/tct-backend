@@ -91,7 +91,7 @@ function getSupplierCertifications(supplierId) {
                         CERTIFICATION_TYPE category, 
                         CERTIFICATION_SUBCATEGORY subCat 
                         FROM SUPPLIER_CERTIFICATIONS
-                        WHERE ID_SUPPLIER IN ${supplierId}`;
+                        WHERE ID_SUPPLIER IN (${supplierId})`;
     return new Promise(function (resolve, reject) {
         console.log(stringQuery);
       con.query(stringQuery, function (err, rows, fields) {
@@ -318,9 +318,13 @@ function saveSupplier(data, performance) {
   }
 
   function getProductTypesForSuppliersId(supplierId) {
-    let stringQuery = `SELECT ID_SUPPLIER idSupplier,
-                       PRODUCT_TYPE_ID productTypeId 
-                       FROM SUPPLIER_PRODUCT_TYPES WHERE ID_SUPPLIER IN ${supplierId}`;
+    let stringQuery = ` SELECT 
+        SP.ID_SUPPLIER AS idSupplier,
+        SP.PRODUCT_TYPE_ID AS productTypeId,
+        SPT.DESCRIPTION AS description 
+    FROM SUPPLIER_PRODUCT_TYPES SP
+    INNER JOIN SUPPLIER_PRODUCT_TYPE SPT ON SP.PRODUCT_TYPE_ID = SPT.ID
+                       WHERE SP.ID_SUPPLIER IN (${supplierId})`;
     return new Promise(function (resolve, reject) {
         console.log(stringQuery);
       con.query(stringQuery, function (err, rows, fields) {

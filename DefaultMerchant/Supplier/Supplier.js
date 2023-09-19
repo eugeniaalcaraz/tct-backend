@@ -26,10 +26,28 @@ module.exports = class ImpactaSupplier {
                 'peopleCertifications':  peopleCertifications,
                 'planetCertifications': planetCertifications};
     }
-    getAllSuppliersForMerchant(idMerchant){
-        var basicInfo = getSupplierForFilter(idMerchant);
-        //armar supplier ids
-        var certifications = getSuppliersCertifications(supplierIds);
+    async getAllSuppliersForMerchant(idMerchant){
+        var basicInfo = await supplierRepository.getSupplierForFilter(idMerchant);
+        var supplierIds = basicInfo.map(item => item.id.toString()).join(',');        
+        console.log(supplierIds);
+        var supplierCertifications = await supplierRepository.getSuppliersCertifications(supplierIds);
+        var supplierProductTypes = await supplierRepository.getProductTypesForSuppliersId(supplierIds);
+            const result = await basicInfo.map(a => {
+                const certifications = supplierCertifications.filter(b => b.idSupplier === a.id);
+                const productTypes = supplierProductTypes.filter(p => p.idSupplier === a.id);
+                console.log("certification in making");
+                console.log(certifications);
+                Object.defineProperty(a, 'countryInHighRisk', {
+                    value: a.countryInHighRisk === 1 ? true : false,
+                    writable: true // Make sure it is writable
+                  });
+                return { ...a, certifications: Array.from(certifications), productTypes: Array.from(productTypes) };
+                // or return { ...a, certifications: [...certifications] };
+              });
+
+        return result;
+        console.log("productTypes")
+        console.log(productTypes);
     }
  
     async getSupplier(idSupplier){
