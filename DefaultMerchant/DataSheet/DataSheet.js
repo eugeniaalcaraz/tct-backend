@@ -15,10 +15,8 @@ module.exports = class ImpactaDataSheet {
     return "Hi from Impacta DataSheet!";
   }
   async updateProduct(data) {
-    console.log("update product");
-    const self = this; // Almacenar referencia al contexto de this
+    const self = this;
     let product = await merchantRepository.getProduct(data.idProduct);
-    console.log(product.length);
     return new Promise(async function(resolve, reject) {
     if(product.length > 0){
         await self.saveNewProduct(data).then(result => {
@@ -54,7 +52,7 @@ module.exports = class ImpactaDataSheet {
             await findCountry(data.idCountry);
             await findTIPOLOGY(data.idTipology);
           } catch (exception) {
-            console.log(exception)
+            
             reject(exception.toString());
             return;
           }
@@ -93,8 +91,6 @@ module.exports = class ImpactaDataSheet {
               merchantRepository.deleteComboFabric(idProduct).then(result => {
                 merchantRepository.deleteProductData(idProduct).then(result => {
                   merchantRepository.deleteProductPicture(idProduct).then(async result => {
-                    console.log("fatal error");
-                    console.log(exception);
                     resolve(false);
                   });
                 })
@@ -116,8 +112,6 @@ module.exports = class ImpactaDataSheet {
 
 };
 async function saveComboFabric(savedFabrics, idProduct, data) {
-  console.log("001");
-
   let fabricComboPromises = savedFabrics.map(async (fab, i) =>
     await merchantRepository.insertComboFabric2(fab, idProduct)
   );
@@ -130,7 +124,6 @@ async function saveComboFabric(savedFabrics, idProduct, data) {
           data: comboFabricReturns.fabric, // Replace 'data' with the correct property name for the data
         }));
         resolve(insertedIdsWithData);
-        console.log(insertedIdsWithData);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -163,13 +156,10 @@ async function handleFabricCombo2(savedFabrics, idProduct, data) {
     );
 
   } catch (ex) {
-    console.log("hola exe");
     throw ex;
   }
 }
 async function saveComboAvio(idProduct, data, savedFabrics) {
-  console.log("001");
-
   let avioComboPromises = data.avios.map(async (av, i) =>
     await merchantRepository.saveComboAvio(av, idProduct, savedFabrics[0].entryDate, 
                                            savedFabrics[0].warehouseEntryDate, savedFabrics[0].shippingDate,
@@ -184,7 +174,6 @@ async function saveComboAvio(idProduct, data, savedFabrics) {
           data: comboAviosReturns.avio, // Replace 'data' with the correct property name for the data
         }));
         resolve(insertedIdsWithData);
-        console.log(insertedIdsWithData);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -195,7 +184,6 @@ async function saveComboAvio(idProduct, data, savedFabrics) {
 async function handleAvioCombo(idProduct, data, savedFabrics) {
   try {
     insertedCombos = await saveComboAvio(idProduct, data, savedFabrics);
-    console.log(insertedCombos);
     await Promise.all(
 
       insertedCombos.map(async (combo) => {
@@ -206,24 +194,19 @@ async function handleAvioCombo(idProduct, data, savedFabrics) {
     );
 
   } catch (ex) {
-    console.log("hola exe");
     throw ex;
   }
 }
 async function saveSizeCurveDatasheet(sizeCurve, idSizeCurveType){
-  console.log(sizeCurve);
-  console.log(idSizeCurveType);
   try{
     if(idSizeCurveType === sizeCurveEnum.shoe){
       return await merchantRepository.saveSizeCurveShoes2(data.sizeCurveType);
     }else if(idSizeCurveType === sizeCurveEnum.clothes){
       return await merchantRepository.saveSizeCurveClothes2(sizeCurve);
     }else{
-      console.log("es denim")
       return await merchantRepository.saveSizeCurveDenim2(sizeCurve);
     }
   }catch(ex){
-    console.log("salio algo mal guardando la curva de talles")
     throw(ex);
   }
 
@@ -243,8 +226,6 @@ async function getProduct(idProduct) {
 }
 
 async function handleFabricCombo(savedFabrics, idProduct, data) {
-  console.log("001");
-  
     const fabricComboPromises = [];
     let fabricCombo = savedFabrics.map(async (fab, i) =>
      await merchantRepository.saveComboFabric(data,
@@ -270,46 +251,14 @@ async function handleFabricCombo(savedFabrics, idProduct, data) {
     Promise.all(fabricComboPromises)
   .then((results) => {
     const insertedIdsWithData = results.map((comboFabricReturns) => ({
-      insertedId: comboFabricReturns.id, // Replace 'id' with the correct property name for the inserted ID
-      data: comboFabricReturns.data, // Replace 'data' with the correct property name for the data
+      insertedId: comboFabricReturns.id,
+      data: comboFabricReturns.data, 
     }));
 
-    // 'insertedIdsWithData' will be an array of objects containing the inserted ID and data for each 'fab' object.
-    console.log(insertedIdsWithData);
   })
   .catch((error) => {
-    // Handle errors if any of the promises fail.
     console.error('Error:', error);
   });
-        //  Promise.all(fabricCombo).then(async (results) => {
-          
-
-
-        //   //TODO: COMENTE ESTO
-        //   // let aviosCombo = data.avios.map(async (av) =>
-        //   //  await merchantRepository.saveComboAvio(
-        //   //     av.idAvio,
-        //   //     idCountryDestination,
-        //   //     idProduct,
-        //   //     entryDate,
-        //   //     warehouseEntryDate,
-        //   //     shippingDate,
-        //   //     idShipping,
-        //   //     av.quantity,
-        //   //     av.idStatus,
-        //   //     av.colors));
-
-        //   // Promise.all(aviosCombo)
-        //   //   .then((results) => {
-        //   //     console.log("todo bien guardando combo avios")
-        //   //     return true;
-        //   //   })
-        //   //   .catch((err) => {
-        //   //     console.log(err)
-        //   //     data.result = false;
-        //   //     throw new Error("Error - Algo salio mal al guardar los avios");
-        //   //   });
-        // });
 }
 
 async function getProduct(idProduct) {
@@ -328,11 +277,8 @@ async function getProduct(idProduct) {
 async function validateIdRise(idTipology) {
   try {
     const result = await merchantRepository.getTipology(idTipology);
-    console.log("Buscando tipology")
-    console.log(result[0].NAME);
     if (result.length > 0) {
       if(result[0].NAME !== "Jean"){
-        console.log(result[0].NAME)
         throw new Error("Error - No puede ingresar un tiro cuando la tipología no es jean.");
       }
       return result;
@@ -358,7 +304,6 @@ async function saveProduct(data, prodNumber) {
 }
 
 async function savePictures(data, idProduct) {
-  console.log("guardando pics desde datasheet")
   const promises = [];
   var count = 0;
   data.pictures.forEach(async (element) => {
@@ -409,12 +354,9 @@ async function saveFabrics(data) {
           throw Error("El id de la tela ingresado no se encuentra en el sistema.");
         }
       }else{
-        console.log("la teka no existe")
         promises.push(
           merchantRepository.saveNewFabricInternal(data.idMerchant, element)
           .then(result => {
-            console.log("grrr")
-            console.log(result)
             if (result > 0) {
               fabrics.push({
                 idFabric: result,
@@ -454,11 +396,9 @@ async function saveFabrics(data) {
 }
 
 async function saveSizeCurve(sizeCurve, idSizeCurveType) {
-  console.log("hola")
   let result;
   try {
     if(idSizeCurveType === sizeCurveEnum.shoe){
-      console.log("que");
        result = await merchantRepository.saveSizeCurveShoes(sizeCurve);
     }else if(idSizeCurveType === sizeCurveEnum.clothes){
       result = await merchantRepository.saveSizeCurveClothes(sizeCurve);
@@ -564,8 +504,6 @@ async function findShippingType(idShippingType) {
 //IdOrigin e IdDestination
 //idCountryDestination
 function validateData(data) {
-  console.log("test quantity");
-  console.log(data.quantity);
   validateMerchantBrand(data.idMerchantBrand);
   // validateShippingDate(data.entryDate);
   // validateShippingDate(data.warehouseEntryDate);
@@ -620,7 +558,6 @@ function validateExtendedSize(idExtendedSize){
 }
 
 function validateComboData(data) {
-  console.log("que hace");
   validateFabric(data.telas);
   validateFiberComposition(data.telas);
 }
@@ -763,8 +700,6 @@ function validateWeight(weight) {
   }
 }
 function validateQuantity(dataQuantity) {
-  console.log("validating quantity");
-  console.log(dataQuantity);
   try{
     if (dataQuantity === undefined) {
       throw new Error("Debe ingresar una cantidad para el producto.");
@@ -782,7 +717,7 @@ function validateQuantity(dataQuantity) {
     }
   }catch(exception){
     console.log("Error quantity");
-    console.log(exception);
+    
   }
 
 }
@@ -819,7 +754,6 @@ function validateFiberComposition(fabrics) {
       );
     }  else {
       if(element.idFabric === 0){
-        console.log("Musica");
         let sum = 0;
         if(element.composition.length > 0){
           element.composition.forEach((element) => {
