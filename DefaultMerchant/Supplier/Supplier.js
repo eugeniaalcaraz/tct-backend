@@ -52,12 +52,9 @@ module.exports = class ImpactaSupplier {
  
     async getSupplier(idSupplier){
         return new Promise(async function(resolve, reject){
-        console.log("Buscando el proveedor: " +  idSupplier);
         var supplierBasicData = await supplierRepository.getSupplier(idSupplier);
         var supplierProductTypes = await supplierRepository.getProductTypesForSupplierId(idSupplier);
         var supplierCertifications = await supplierRepository.getSupplierCertifications(idSupplier);
-        console.log(supplierBasicData);
-        console.log(supplierProductTypes);
 
         resolve({
             'supplierTypeId': supplierBasicData[0].supplierTypeId,
@@ -137,8 +134,6 @@ const prioritizePerformance = ['A', 'B', 'C', 'D'];
 // Generate all possible combinations of certifications
 function generateCombinations(certifications) {
   const result = [[]];
-  console.log("certific")
-  console.log(certifications);
   for (const cert of certifications) {
     const current = [...result];
     for (const combo of current) {
@@ -150,13 +145,8 @@ function generateCombinations(certifications) {
 
 // Find the matching performance for a combination of subCategories
 function findMatchingPerformance(combination, performanceRules) {
-    console.log("performanceRules")
-    console.log(performanceRules);
   for (const rule of performanceRules) {
-    console.log("r")
-    console.log(rule);
     const ruleSubCats = rule.Rule.split('-');
-    console.log(ruleSubCats);
     if (ruleSubCats.every(subCat => combination.includes(subCat))) {
       return rule.Performance;
     }
@@ -209,7 +199,6 @@ async function saveSupplierBasicData(data, performance){
             });
         }catch(ex){
             reject(ex);
-            console.log(ex);
         }
     });
 }
@@ -224,7 +213,6 @@ async function saveSupplierCertifications(supplierId, data) {
                         resolve(result);
                     })
                     .catch(error => {
-                        console.log("hola")
                         reject(error);
                     });
         }
@@ -270,9 +258,7 @@ function validateOptionalData(data){
 }
 function validateOrderEstimate(estimatedAnualOrder){
     if(estimatedAnualOrder !== undefined){
-        console.log(estimatedAnualOrder);
         if(isNaN(estimatedAnualOrder)){
-            console.log("hola")
             throw new Error("El pedido estimado anual debe de ser numerico");
         }
     }
@@ -340,7 +326,6 @@ function validateEmployees(employees){
     if(employees === undefined){
         throw new Error("Debe ingresar la información correspondiente al personal");
     }else if(employees.total === undefined || employees.total < 1){
-        console.log(employees.total);
         throw new Error("Total invalido");
     }else if(employees !== null && employees.women < 0){
         throw new Error("Cantidad de personal femenino invalido");
@@ -354,7 +339,6 @@ function validateAnualContract(anualContract){
     if(anualContract === undefined){
         throw new Error("Debe indicar si cuenta con un contrato de tipo anual");
     }else if(anualContract !== true && anualContract !== false){
-        console.log(anualContract);
         throw new Error("El contrato anual debe ser un valor booleano");
     }
 }
@@ -362,7 +346,6 @@ function validateIdCountry(idCountry){
     if(idCountry === undefined){
         throw new Error("Debe ingresar un país");
     }else if(idCountry < 1){
-        console.log(idCountry)
         throw new Error("País invalido");
     }
 }

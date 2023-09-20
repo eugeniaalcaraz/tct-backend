@@ -6,13 +6,13 @@ function getSupplierPeopleCertifications() {
     COMMENT_GENERIC_QUIMICALS commentGenericQuimicals, COMMENT_GENERIC_MATERIALS commentGenericMaterials, 
     COMMENT_GENERIC_PEOPLE commentGenericPeople, IS_CHECKBOX isCheckbox, 'people' as category FROM PEOPLE_CERTIFICATION;`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
-        console.log(rows)
+        
         resolve(rows);
       });
     });
@@ -23,13 +23,13 @@ function getSupplierPeopleCertifications() {
     COMMENT_GENERIC_QUIMICALS commentGenericQuimicals, COMMENT_GENERIC_MATERIALS commentGenericMaterials, 
     COMMENT_GENERIC_PEOPLE commentGenericPeople, 'planet' as category FROM PLANET_CERTIFICATION;`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
-        console.log(rows)
+        
         resolve(rows);
       });
     });
@@ -39,13 +39,13 @@ function getSupplierPeopleCertifications() {
 function getSupplierTypes() {
     let stringQuery = `SELECT ID id, DESCRIPTION description FROM SUPPLIER_TYPE;`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
-        console.log(rows)
+        
         resolve(rows);
       });
     });
@@ -54,13 +54,13 @@ function getSupplierTypes() {
   function getSupplierProductTypes() {
     let stringQuery = `SELECT ID id, DESCRIPTION description FROM SUPPLIER_PRODUCT_TYPE;`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
-        console.log(rows)
+        
         resolve(rows);
       });
     });
@@ -73,10 +73,10 @@ function getSupplierCertifications(supplierId) {
                         FROM SUPPLIER_CERTIFICATIONS
                         WHERE ID_SUPPLIER = ${supplierId}`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -93,10 +93,10 @@ function getSupplierCertifications(supplierId) {
                         FROM SUPPLIER_CERTIFICATIONS
                         WHERE ID_SUPPLIER IN (${supplierId})`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -108,10 +108,10 @@ function saveSupplierCertifications(supplierId, certificationId, certificationTy
     let stringQuery = `INSERT INTO SUPPLIER_CERTIFICATIONS (ID_SUPPLIER, CERTIFICATION_ID, CERTIFICATION_TYPE, CERTIFICATION_SUBCATEGORY ) 
     VALUES (${supplierId}, ${certificationId}, '${certificationType}', '${certificationSubcategory}')`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows.insertId);
@@ -123,10 +123,10 @@ function saveSupplierCertifications(supplierId, certificationId, certificationTy
 function deleteSupplierCertifications(supplierId) {
     let stringQuery = `DELETE FROM SUPPLIER_CERTIFICATIONS WHERE ID_SUPPLIER = ${supplierId}`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows.insertId);
@@ -227,10 +227,10 @@ function deleteSupplierCertifications(supplierId) {
     stringQuery += " WHERE ID = " + data.id;
 
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows.insertId);
@@ -247,10 +247,10 @@ function saveSupplier(data, performance) {
         '${data.address}', '${data.contactPerson}', '${data.email}', ${date}, ${data.estimatedAnualOrder},
         ${data.anualContract}, ${data.employees.women},  ${data.employees.men},  ${data.employees.total}, ${data.idMerchant}, '${performance}', ${data.vatNumber})`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows.insertId);
@@ -267,7 +267,7 @@ function saveSupplier(data, performance) {
     return new Promise(function (resolve, reject) {
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -278,10 +278,10 @@ function saveSupplier(data, performance) {
     function saveSupplierProductTypes(supplierId, productTypeId) {
         let stringQuery = `DELETE SUPPLIER_PRODUCT_TYPES WHERE ID_SUPPLIER = ${supplierId}`;
         return new Promise(function (resolve, reject) {
-            console.log(stringQuery);
+            
           con.query(stringQuery, function (err, rows, fields) {
             if (err) {
-              console.log(err);
+              
               return reject(err);
             }
             resolve(rows.insertId);
@@ -292,10 +292,10 @@ function saveSupplier(data, performance) {
   function saveSupplierProductTypes(supplierId, productTypeId) {
     let stringQuery = `INSERT INTO SUPPLIER_PRODUCT_TYPES (ID_SUPPLIER,PRODUCT_TYPE_ID) VALUES (${supplierId}, ${productTypeId})`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows.insertId);
@@ -306,10 +306,10 @@ function saveSupplier(data, performance) {
   function getProductTypesForSupplierId(supplierId) {
     let stringQuery = `SELECT ID_SUPPLIER idSupplier,PRODUCT_TYPE_ID productTypeId FROM SUPPLIER_PRODUCT_TYPES WHERE ID_SUPPLIER = ${supplierId}`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -326,10 +326,10 @@ function saveSupplier(data, performance) {
     INNER JOIN SUPPLIER_PRODUCT_TYPE SPT ON SP.PRODUCT_TYPE_ID = SPT.ID
                        WHERE SP.ID_SUPPLIER IN (${supplierId})`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -349,10 +349,10 @@ function saveSupplier(data, performance) {
   function getSupplierPerformanceRules() {
     let stringQuery = `SELECT ID Id, PERFORMANCE Performance, RULE Rule FROM SUPPLIER_PERFORMANCE_CONFIGURATION`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);
@@ -371,10 +371,10 @@ function saveSupplier(data, performance) {
     INNER JOIN COUNTRY C ON S.ID_COUNTRY = C.ID
     WHERE S.ID_MERCHANT = ${idMerchant};`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery);
+        
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
         resolve(rows);

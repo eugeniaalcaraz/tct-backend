@@ -18,7 +18,6 @@ router.route("/getMerchantManagmentUnits/:IdMerchant").get((req, res) => {
 });
 
 router.route("/getMerchantIndustries/:IdMerchant/:IdManagmentUnit").get((req, res) => {
-    console.log("hola")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getMerchantIndustries({ idMerchant: req.params.IdMerchant, idManagmentUnit: req.params.IdManagmentUnit })
@@ -103,7 +102,6 @@ router.route("/getAllTipologies").get((req, res) => {
 
 
 router.route("/getFibers/:IdMerchant").get((req, res) => {
-    console.log("aaaaaaaaaaaaaaaaaaa")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getFibers()
@@ -188,7 +186,6 @@ router.route("/getMerchantFibers/:IdMerchant").get((req, res) => {
 });
 
 router.route("/getFabrics/:IdMerchant").get((req, res) => {
-    console.log("aaaaaaaaaaaaaaaaa")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getFabrics(req.params.IdMerchant)
@@ -206,7 +203,6 @@ router.route("/ping").get((req, res) => {
     res.send("HOLAAAAAAAAAAAA")
 });
 router.route("/getShippingTypes/:IdMerchant").get((req, res) => {
-    console.log("hola 2")
     currentBrand = new DynamicClass("ImpactaMerchant");
     currentBrand
         .getShippingTypes({ idMerchant: req.params.IdMerchant })

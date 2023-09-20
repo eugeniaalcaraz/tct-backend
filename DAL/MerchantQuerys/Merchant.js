@@ -55,7 +55,6 @@ function getMerchantSeason({ idMerchant, idSeason }) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -85,7 +84,7 @@ function getMerchantManagmentUnits({ idMerchant }) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+
         return reject(err);
       }
       resolve(rows);
@@ -97,11 +96,9 @@ function getMerchantIndustries({ idMerchant, idManagmentUnit }) {
     let stringQuery =
     `SELECT ind.ID Id, ind.DESCRIPTION Description FROM INDUSTRY ind INNER JOIN INDUSTRY_MANAGMENT_UNIT indManagUnit on
     ind.ID = indManagUnit.ID_INDUSTRY WHERE ind.ID_MERCHANT = ${idMerchant} AND indManagUnit.ID_MANAGMENT_UNIT = ${idManagmentUnit}`;
-    console.log(stringQuery.toUpperCase())
     return new Promise(function (resolve, reject) {
       con.query(stringQuery, function (err, rows, fields) {
         if (err) {
-          console.log(err);
           return reject(err);
         }
         resolve(rows);
@@ -126,11 +123,9 @@ function getMerchantSuppliers({ idMerchant }) {
   let stringQuery =
     `SELECT sup.ID Id, sup.NAME Name, sup.LASTNAME Lastname FROM SUPPLIER sup 
     INNER JOIN SUPPLIER_MERCHANT supMerchant on sup.ID = supMerchant.ID_SUPPLIER WHERE supMerchant.ID_MERCHANT = ${idMerchant}`;
-    console.log(stringQuery);
     return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -165,30 +160,25 @@ function getCountries() {
 }
 
 function getTipologiesForIndustry(idIndustry) {
-  console.log("buscando tipologias yyy")
   let stringQuery = `SELECT T.ID Id, T.NAME Description, T.CODE Code, T.WEIGHT Weight  
                     FROM TIPOLOGY T WHERE T.ID_INDUSTRY = ${idIndustry}`;
-  console.log(stringQuery);
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
-      console.log(rows);
       resolve(rows);
     });
   });
 }
 
 function getTipologies() {
-  console.log("buscando tipologias")
   let stringQuery = `SELECT T.ID Id, T.NAME Description, T.CODE Code, T.WEIGHT Weight, T.ID_INDUSTRY IdIndustry  
                     FROM TIPOLOGY T`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+
         return reject(err);
       }
       resolve(rows);
@@ -197,13 +187,11 @@ function getTipologies() {
 }
 
 function getAllTipologies() {
-  console.log("buscando tipologias")
   let stringQuery = `SELECT T.ID Id, T.NAME Description, T.CODE Code, T.WEIGHT Weight, T.ID_INDUSTRY IdIndustry  
                     FROM TIPOLOGY T`;
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
       resolve(rows);
@@ -228,7 +216,7 @@ function getColors() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows);
@@ -241,7 +229,7 @@ function getTrims() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows);
@@ -280,7 +268,7 @@ function getPlacements() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows);
@@ -293,7 +281,7 @@ function getShippingTypes() {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows);
@@ -308,7 +296,7 @@ function findCollection(idCollection, idMerchant) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows);
@@ -426,11 +414,9 @@ async function getFabricComposition(idFabric) {
     "select f.DESCRIPTION Description, pf.PERCENTAGE Percentage from PERCENTAGE_FIBER pf inner join FIBER f on pf.ID_FIBER = f.ID where pf.ID_FABRIC = " +
     idFabric;
   return new Promise(function (resolve, reject) {
-    console.log("Buscando composición de la tela " +  idFabric);
-    console.log(stringQuery);
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err)
+        
         return reject(err);
       }
       resolve(rows);
@@ -447,7 +433,7 @@ async function getFabricColors(idComboFabric) {
   return new Promise(function (resolve, reject) {
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err)
+        
         return reject(err);
       }
       resolve(rows);
@@ -470,7 +456,6 @@ function getFabric(description, weight) {
   let stringQuery = `SELECT * FROM FABRIC WHERE DESCRIPTION = '${description}' AND WEIGHT = ${weight}`;
 
   return new Promise(function (resolve, reject) {
-    console.log(stringQuery);
     con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
       if (err) {
         return reject(err);
@@ -485,14 +470,9 @@ function saveNewFabric(idMerchant, description, weight) {
   let idFab;
   return new Promise(function (resolve, reject) {
     getFabric(description, weight).then((res) => {
-      console.log("Resultado de buscar tela existente")
-      console.log(res);
       if (res.length > 0) {//Si ya existe, devuelve el id existente
-        console.log("tela ya existe")
-        idFab = res[0].ID;
         resolve({exists: true, idFab: idFab});
       } else {
-        console.log("Guardando tela")
         insertFabric(description, weight, idMerchant).then((res) => {
           idFab = res;
           resolve({exists: false, idFab: idFab});
@@ -565,7 +545,6 @@ async function saveFabric(fabric, idMerchant, numFab) {
   return new Promise(function (resolve, reject) {
     let fiberIds = getStringIds(fabric);
     if (fabric.saveDuplicateFabric === 1) {
-      console.log("alo")
       saveNewFabricInternal(
         idMerchant,
         fabric.description,
@@ -573,7 +552,6 @@ async function saveFabric(fabric, idMerchant, numFab) {
         fabric,
         numFab
       ).then((result) => {
-        console.log("pato")
         resolve(result);
       });
     } else {
@@ -587,7 +565,6 @@ async function saveFabric(fabric, idMerchant, numFab) {
             if (result.length !== getFiberIdsCount(fabric)) {
               reject("Una de las fibras ingresadas no existe en el sistema");
             } else {
-              console.log("caballo")
               saveNewFabricInternal(
                 idMerchant,
                 fabric.description,
@@ -606,12 +583,10 @@ async function saveFabric(fabric, idMerchant, numFab) {
 }
 
 async function saveNewFabricInternal(idMerchant, fabric) {
-  console.log("la tela no existia");
   return new Promise(function (resolve, reject) {
     saveNewFabric(idMerchant, fabric.description, fabric.weight).then(
       (result) => {
         let idFabric = result.idFab;
-        console.log(idFabric);
         if (!result.exists) {
           if (fabric.composition.length > 0) {
             fabric.composition.forEach(async (element) => {
@@ -666,8 +641,6 @@ function findDesigner(idDesigner, idMerchant) {
   });
 }
 function saveSizeCurveShoes(data, sizeCurve) {
-    console.log("alo size curve");
-    console.log(sizeCurve);
   let id;
   return new Promise(function (resolve, reject) {
     let stringQuery = `INSERT INTO SIZE_CURVE_SHOES ( THIRTYFOUR,
@@ -680,7 +653,7 @@ function saveSizeCurveShoes(data, sizeCurve) {
                                                                     ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]})`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err)
+        
         data.result = false;
         saveSizeCurveShoes(data, [0,0,0,0,0,0,0])
         return reject(err);
@@ -692,8 +665,6 @@ function saveSizeCurveShoes(data, sizeCurve) {
 }
 
 function saveSizeCurveShoes2(sizeCurve) {
-  console.log("alo size curve 2");
-  console.log(sizeCurve);
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_SHOES ( THIRTYFOUR,
@@ -713,8 +684,7 @@ return new Promise(function (resolve, reject) {
 });
 }
 function saveSizeCurveDenim(data,sizeCurve) {
-  console.log("alo size curve");
-  console.log(sizeCurve)
+
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_DENIM (TWENTYTHREE,
@@ -736,7 +706,7 @@ return new Promise(function (resolve, reject) {
                                                                       ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
                                                                       ${sizeCurve[7]},${sizeCurve[8]},${sizeCurve[9]},${sizeCurve[10]},${sizeCurve[11]},
                                                                       ${sizeCurve[12]},${sizeCurve[13]},${sizeCurve[14]},${sizeCurve[15]})`;
-                                                                      console.log(stringQuery);
+                                                                      
   con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
     if (err) {
       data.result = false;
@@ -749,8 +719,6 @@ return new Promise(function (resolve, reject) {
 }
 
 function saveSizeCurveDenim2(sizeCurve) {
-  console.log("alo size curve 2");
-  console.log(sizeCurve)
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_DENIM (TWENTYTHREE,
@@ -772,7 +740,7 @@ return new Promise(function (resolve, reject) {
                                                                       ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
                                                                       ${sizeCurve[7]},${sizeCurve[8]},${sizeCurve[9]},${sizeCurve[10]},${sizeCurve[11]},
                                                                       ${sizeCurve[12]},${sizeCurve[13]},${sizeCurve[14]},${sizeCurve[15]})`;
-                                                                      console.log(stringQuery);
+                                                                      
   con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
     if (err) {
       return reject(err);
@@ -782,7 +750,6 @@ return new Promise(function (resolve, reject) {
 });
 }
 function saveSizeCurveClothes2(sizeCurve) {
-  console.log("alo size curve 2")
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_CLOTHES (U,
@@ -799,11 +766,9 @@ return new Promise(function (resolve, reject) {
                                                     6XL)  values(${sizeCurve[0]},${sizeCurve[1]},
                                                                         ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
                                                                         ${sizeCurve[7]},${sizeCurve[8]},${sizeCurve[9]},${sizeCurve[10]},${sizeCurve[11]})`;
-                                                                        console.log(stringQuery.toUpperCase());
+                                                  
   con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
     if (err) {
-      console.log("999");
-      //throw(err);
       return reject(err);
     }
     resolve(rows.insertId);
@@ -811,7 +776,6 @@ return new Promise(function (resolve, reject) {
 });
 }
 function saveSizeCurveClothes(data, sizeCurve) {
-  console.log("alo size curve")
 let id;
 return new Promise(function (resolve, reject) {
   let stringQuery = `INSERT INTO SIZE_CURVE_CLOTHES (U,
@@ -828,7 +792,6 @@ return new Promise(function (resolve, reject) {
                                                     6XL)  values(${sizeCurve[0]},${sizeCurve[1]},
                                                                         ${sizeCurve[2]},${sizeCurve[3]},${sizeCurve[4]},${sizeCurve[5]},${sizeCurve[6]},
                                                                         ${sizeCurve[7]},${sizeCurve[8]},${sizeCurve[9]},${sizeCurve[10]},${sizeCurve[11]})`;
-                                                                        console.log(stringQuery.toUpperCase());
   con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
     if (err) {
       data.result = false;
@@ -851,10 +814,7 @@ async function saveFiberPercentager(idFiber, percentage, idFabric) {
 }
 
 function savePicture(picture, idProuct, isMain, pictNum) {
-  console.log("Guardando pic")
   return new Promise(function (resolve, reject) {
-    console.log("arandanos");
-    console.log(picture)
     let stringQuery = `INSERT INTO PRODUCT_PICTURE (PATH, ID_PRODUCT, IS_MAIN) VALUES ('${picture}', ${idProuct}, ${isMain})`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
@@ -878,15 +838,12 @@ function startTransaction() {
 }
 
 function rollback(){
-  console.log("rollback 2023")
   return new Promise(function (resolve, reject) {
     let stringQuery = `ROLLBACK`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log("holaaa error rollback")
         return reject(err);
       }
-      console.log("holaaa rollback")
       resolve(rows);
     });
   });
@@ -904,9 +861,6 @@ function commit(){
 }
 function saveProduct(prod, prodNumber) {
   return new Promise(function (resolve, reject) {
-    //let shipping = ; //TODO MG: ?? que es el 3?
-    console.log("elefantiti");
-    console.log(prod.sampleType)
     let extendedSize = prod.extendedSize ? 1 : 0;
     let idRise = prod.idRise === undefined || 0 ? null : prod.idRise;
     let date = getFormattedDateProd(prod.modelingDate);
@@ -924,10 +878,9 @@ function saveProduct(prod, prodNumber) {
                        ${prod.idIndustry},${prod.idMerchantBrand}, ${prod.year}, ${prod.proyecta === true ? 1 : 0}, ${prod.idConcept}, ${prod.idLine},
                        ${prod.idBodyFit}, ${idRise}, ${prodNumber}, ${extendedSize},${prod.sizeCurveType},'${prod.fabricCode}', ${prod.idStatusMeasurmentTable},
                        '${prod.measurmentTable}', ${prod.idModelingStatus}, ${date}, ${prod.idSampleStatus}, ${sampleDate}, ${prod.sampleType}, ${prod.idManagmentUnit})`;//order
-    console.log(stringQuery);
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
       resolve(rows.insertId);
@@ -942,11 +895,9 @@ function getFormattedDateProd(strDate) {
   return `'${year}-${month}-${day}'`;
 }
 function deleteComboFabricColor(idProd) {
-  console.log("eliminadno producto y data")
  return new Promise(function (resolve, reject) {
    let stringQuery = `
    DELETE FROM COMBO_FABRIC_COLOR WHERE ID_COMBO_FABRIC IN (SELECT ID FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd}); `;
-     console.log(stringQuery.toUpperCase());
      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
          if (err) {
            return reject(err);
@@ -957,11 +908,9 @@ function deleteComboFabricColor(idProd) {
  
 }
 function deleteComboFabricPrint(idProd) {
-  console.log("eliminadno producto y data")
  return new Promise(function (resolve, reject) {
    let stringQuery = `
    DELETE FROM COMBO_FABRIC_PRINT WHERE ID_COMBO_FABRIC IN (SELECT ID FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd});`;
-     console.log(stringQuery.toUpperCase());
      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
          if (err) {
            return reject(err);
@@ -973,11 +922,9 @@ function deleteComboFabricPrint(idProd) {
 }
 
 function deleteComboFabric(idProd) {
-  console.log("eliminadno producto y data")
  return new Promise(function (resolve, reject) {
    let stringQuery = `
    DELETE FROM COMBO_FABRIC WHERE ID_PRODUCT = ${idProd};`;
-     console.log(stringQuery.toUpperCase());
      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
          if (err) {
            return reject(err);
@@ -992,15 +939,10 @@ function deleteProductPicture(idProd) {
  return new Promise(function (resolve, reject) {
    let stringQuery = `
    DELETE FROM PRODUCT_PICTURE WHERE ID_PRODUCT = ${idProd}`;
-
-     console.log(stringQuery.toUpperCase());
      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
          if (err) {
-           console.log("error eliminando el la foto del producto")
-           console.log(err)
            return reject(err);
          }
-         console.log("la foto del producto se elimino correctamente")
          resolve(rows.affectedRows === 1);
        });
      });
@@ -1008,19 +950,14 @@ function deleteProductPicture(idProd) {
 }
 
 function deleteProductData(idProd) {
-  console.log("eliminadno producto y data")
  return new Promise(function (resolve, reject) {
    let stringQuery = `
    DELETE FROM PRODUCT WHERE ID = ${idProd}`;
 
-     console.log(stringQuery.toUpperCase());
      con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
          if (err) {
-          console.log("Error eliminando prod");
-          console.log(err);
            return reject(err);
          }
-         console.log("Elimine el producto correctamente");
          resolve(rows.affectedRows === 1);
        });
      });
@@ -1126,7 +1063,6 @@ function updateProductOld(prod, prodNumber) {
         stringQuery = stringQuery.slice(0, -2); // Remove the trailing comma and space
 
         stringQuery += ` WHERE ID = ${prod.id}`;
-        console.log(stringQuery.toUpperCase());
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
               return reject(err);
@@ -1145,14 +1081,11 @@ function getProductNumber(idSeason){
                                     END AS number
                                     FROM PRODUCT
                                     WHERE ID_SEASON = ${idSeason}`;//order
-        console.log(stringQuery.toUpperCase())
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
-          console.log("prod number ");
-          console.log(rows);
           resolve(rows[0].NUMBER);
         });
       });
@@ -1163,10 +1096,10 @@ function getMerchantBrands(idMerchant){
         let stringQuery = `SELECT ID Id, NAME Name, CODE Code, ID_MERCHANT IdMerchant FROM MERCHANT_BRAND WHERE ID_MERCHANT = ${idMerchant}`;//order
         con.query(stringQuery, function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
-          console.log(rows)
+          
           resolve(rows);
         });
       });
@@ -1189,7 +1122,7 @@ function getMerchantShoeMaterials(idMerchant){
         let stringQuery = `SELECT ID Id, DESCRIPTION Description FROM SHOE_MATERIAL WHERE ID_MERCHANT = ${idMerchant}`;//order
         con.query(stringQuery, function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
           resolve(rows);
@@ -1198,7 +1131,6 @@ function getMerchantShoeMaterials(idMerchant){
 }
 
 function getProduct(idProduct) {
-  console.log("Getting product data");
   return new Promise(function (resolve, reject) {
     let stringQuery = `SELECT
     ID AS id,
@@ -1241,18 +1173,14 @@ FROM
     WHERE ID = ${idProduct}`;
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
-      console.log("hola")
-      console.log(rows);
       resolve(rows);
     });
   });
 }
 
 function getProductBasic(idProduct) {
-  console.log("Getting product data");
   return new Promise(function (resolve, reject) {
     let stringQuery = `SELECT
     ID AS id,
@@ -1293,21 +1221,15 @@ function getProductBasic(idProduct) {
 FROM
     PRODUCT
     WHERE ID = ${idProduct}`;
-    console.log(stringQuery)
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log("cassisss")
-        console.log(err);
         return reject(err);
       }
-      console.log("holaaa")
-      console.log(rows);
       resolve(rows);
     });
   });
 }
 function getProductFromNumber(productNumber, idSeason, idMerchant) {
-  console.log("Getting product data from number");
   return new Promise(function (resolve, reject) {
     let stringQuery = `SELECT
     ID AS id,
@@ -1348,13 +1270,13 @@ function getProductFromNumber(productNumber, idSeason, idMerchant) {
 FROM
     PRODUCT
     WHERE NUMBER = ${productNumber} AND ID_MERCHANT = ${idMerchant} AND ID_SEASON = ${idSeason}`;
-    console.log(stringQuery);
+    
     con.query(stringQuery, function (err, rows, fields) {
       if (err) {
-        console.log(err);
+        
         return reject(err);
       }
-      console.log(rows);
+      
       resolve(rows);
     });
   });
@@ -1368,13 +1290,7 @@ function getFormmatedDate() {
   }
 
   async function saveColorFabricCombo(data, idComboFabric, idColor, sizeCurve, sizeCurveType, idStatus) {
-    console.log("004");
-    console.log("size curve" +  sizeCurve)
-    console.log(`El id size curve type ${sizeCurveType}`);
     let idSizeCurve;
-
-
-    console.log(`El id size curve es ${idSizeCurve}`);
     return new Promise(async function (resolve, reject) {
       try{
         idSizeCurve = await saveSizeCurve(data, sizeCurve, sizeCurveType);
@@ -1383,10 +1299,10 @@ function getFormmatedDate() {
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             data.result = false;
-            console.log(err)
+            
             return reject(err);
           }
-          console.log(rows)
+          
           resolve(rows);
         });
       }catch(exception){
@@ -1403,12 +1319,10 @@ function getFormmatedDate() {
                            VALUES (${idComboFabric},${idColor},${idStatus},${idSizeCurve})`;
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
-            console.log("algo salio mal guardando el combo fabric color")
-            console.log(err);
             throw(err);
             return reject(err);
           }
-          console.log(rows);
+          
           resolve(rows);
         });
     });
@@ -1416,17 +1330,13 @@ function getFormmatedDate() {
   async function savePrintFabricCombo
   (data, idComboFabric, idPrint, sizeCurve, sizeCurveType, idStatus) {
     let idSizeCurve = await saveSizeCurve(data, sizeCurve, sizeCurveType);
-    
-    console.log(`El id size curve es ${idSizeCurve}`);
     return new Promise(function (resolve, reject) {
       let stringQuery = `INSERT INTO COMBO_FABRIC_PRINT (ID_COMBO_FABRIC, ID_PRINT, ID_STATUS, ID_SIZE_CURVE) VALUES (${idComboFabric},${idPrint},${idStatus},${idSizeCurve})`;
   
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
-          console.log(err);
           return reject(err);
         }
-        console.log(rows);
         resolve({idComboFabricPrint: rows.insertId});
       });
     });
@@ -1439,10 +1349,10 @@ function getFormmatedDate() {
                          VALUES (${idComboFabric},${idPrint},${idStatus},${idSizeCurve})`;
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
-          console.log(err);
+          
           return reject(err);
         }
-        console.log(rows);
+        
         resolve(rows);
       });
     });
@@ -1451,8 +1361,6 @@ function getFormmatedDate() {
 
 
   async function saveSizeCurve(data, sizeCurve, idSizeCurveType){
-    console.log("005")
-    console.log(sizeCurve);
     if(idSizeCurveType === sizeCurveEnum.shoe){
 
       return await saveSizeCurveShoes(data,sizeCurve);
@@ -1477,21 +1385,12 @@ function saveComboAvio(avio,
                        	SHIPPING_DATE,	ID_SHIPPING, QUANTITY, ID_STATUS, STATUS_DATE) VALUES (${avio.idAvio},${idProduct},
                         ${idCountryDestination}, STR_TO_DATE(${formattedEntryDate}, '%d,%m,%Y'), 
                         STR_TO_DATE(${formattedWarehouseEntryDate}, '%d,%m,%Y'),
-                        STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping}, ${avio.quantity}, ${avio.idStatus}, CURDATE())`;
-    console.log(stringQuery);                      
+                        STR_TO_DATE(${formattedShippingDate}, '%d,%m,%Y'), ${idShipping}, ${avio.quantity}, ${avio.idStatus}, CURDATE())`;                    
     con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
-      //resolve({comboAbio});
-      console.log("fale");
-      console.log(rows);
       resolve({avio: avio, id: rows.insertId});
-      // await colors.map(c => {
-      //   saveComboAvioColor(rows.insertId,c.idColor,c.idStatus);
-      // });
-      // resolve(rows);
     });
   });
 }
@@ -1500,7 +1399,7 @@ async function saveComboAvioColor(idComboAvio, idColor, idStatus) {
 return new Promise(function (resolve, reject) {
 let stringQuery = `INSERT INTO COMBO_AVIO_COLOR (ID_COMBO_AVIO, ID_COLOR,
                    ID_STATUS) VALUES (${idComboAvio},${idColor}, ${idStatus})`;
-console.log(stringQuery);
+
 con.query(stringQuery, function (err, rows, fields) {
 if (err) {
 return reject(err);
@@ -1613,8 +1512,6 @@ function getDateFormatted(){
 }
 
 async function insertComboFabric2(fabric, idProduct) {
-  console.log("003")
-  console.log(fabric);
     return new Promise(function (resolve, reject) {
       let formattedEntryDate = getFormattedDate(fabric.entryDate);
       let formattedWarehouseEntryDate = getFormattedDate(fabric.warehouseEntryDate);
@@ -1635,30 +1532,6 @@ async function insertComboFabric2(fabric, idProduct) {
         return reject(err);
       }
       resolve({fabric: fabric, id: rows.insertId});
-      // console.log(rows);
-      // await prints.map( c => {
-      //   console.log("cada print");
-      //   console.log(c);
-      //    savePrint(data, c.nombre, c.cantidadColor).then( r => {
-      //     console.log("Resultado guardado print");
-      //     console.log(r);
-      //      savePrintFabricCombo(data, rows.insertId,r.insertId,c.sizeCurve, idSizeCurveType, c.idStatus);
-      //   });
-      // });
-      // console.log(colors)
-      // await colors.map(async c => {
-      //   console.log("cada color");
-      //   console.log(c);
-      //   try{
-      //      saveColorFabricCombo(data, rows.insertId,c.idColor,c.sizeCurve, idSizeCurveType, c.idStatus);
-      //   }catch(exception){
-      //     data.result = false;
-      //     throw exception;
-      //   }
-
-      // });
-      console.log("resolviendo los combos")
-      resolve(rows);
     });
   });
 }
@@ -1679,7 +1552,6 @@ async function insertComboFabric2(fabric, idProduct) {
   quantity,
   idStatus
 ) {
-  console.log("003")
 
     return new Promise(function (resolve, reject) {
       let formattedEntryDate = getFormattedDate(entryDate);
@@ -1701,20 +1573,12 @@ async function insertComboFabric2(fabric, idProduct) {
         data.result = false;
         return reject(err);
       }
-      console.log(rows);
       await prints.map( c => {
-        console.log("cada print");
-        console.log(c);
          savePrint(data, c.nombre, c.cantidadColor).then( r => {
-          console.log("Resultado guardado print");
-          console.log(r);
            savePrintFabricCombo(data, rows.insertId,r.insertId,c.sizeCurve, idSizeCurveType, c.idStatus);
         });
       });
-      console.log(colors)
       await colors.map(async c => {
-        console.log("cada color");
-        console.log(c);
         try{
            saveColorFabricCombo(data, rows.insertId,c.idColor,c.sizeCurve, idSizeCurveType, c.idStatus);
         }catch(exception){
@@ -1723,7 +1587,6 @@ async function insertComboFabric2(fabric, idProduct) {
         }
 
       });
-      console.log("resolviendo los combos")
       resolve(rows);
     });
   });
@@ -1758,12 +1621,10 @@ function getAvio(idAvio) {
 function getTipology(idTipology){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, NAME FROM TIPOLOGY WHERE ID = ${idTipology}`;
-        console.log(stringQuery.toUpperCase());
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
             return reject(err);
           }
-          console.log(rows);
           resolve(rows);
         });
       });
@@ -1771,12 +1632,12 @@ function getTipology(idTipology){
 function getManagmentUnit(idManagmentUnit){
   return new Promise(function (resolve, reject) {
       let stringQuery = `SELECT ID, DESCRIPTION AS NAME FROM MANAGMENT_UNIT WHERE ID = ${idManagmentUnit}`;
-      console.log(stringQuery.toUpperCase());
+      
       con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
         if (err) {
           return reject(err);
         }
-        console.log(rows);
+        
         resolve(rows);
       });
     });
@@ -1785,10 +1646,10 @@ function getManagmentUnit(idManagmentUnit){
 function getMerchantClothingSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_CLOTHES`;
-        console.log(stringQuery.toUpperCase())
+        
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
           resolve(rows);
@@ -1798,10 +1659,10 @@ function getMerchantClothingSizeCurve(){
 function getMerchantDenimSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_DENIM`;
-        console.log(stringQuery.toUpperCase())
+        
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
           resolve(rows);
@@ -1811,10 +1672,10 @@ function getMerchantDenimSizeCurve(){
 function getMerchantShoesSizeCurve(){
     return new Promise(function (resolve, reject) {
         let stringQuery = `SELECT ID, SIZE FROM SIZE_CURVE_SHOES`;
-        console.log(stringQuery.toUpperCase())
+        
         con.query(stringQuery.toUpperCase(), function (err, rows, fields) {
           if (err) {
-            console.log(err);
+            
             return reject(err);
           }
           resolve(rows);
@@ -1823,7 +1684,7 @@ function getMerchantShoesSizeCurve(){
 }
 
 function getComboFabric(idProduct) {
-console.log("Buscando fabrics");
+
 return new Promise(function (resolve, reject) {
 let stringQuery = `
 SELECT 
@@ -1844,14 +1705,14 @@ F.WEIGHT AS weight
 FROM COMBO_FABRIC CF
 INNER JOIN FABRIC F ON CF.ID_FABRIC = F.ID 
 WHERE ID_PRODUCT =${idProduct}`; 
-console.log(stringQuery)                     
+                     
 con.query(stringQuery, async function (err, rows, fields) {
 if (err) {
-console.log(err);
+
 return reject(err);
 }
-console.log("bb");
-console.log(rows);
+
+
 resolve(rows);
 });
 });
@@ -1876,11 +1737,11 @@ function getComboAvio(idProduct) {
   WHERE ID_PRODUCT = ${idProduct}`;                      
   con.query(stringQuery, async function (err, rows, fields) {
   if (err) {
-  console.log(err);
+  
   return reject(err);
   }
-  console.log("bb");
-  console.log(rows);
+  
+  
   resolve(rows);
   });
   });
@@ -1899,10 +1760,10 @@ function getComboAvio(idProduct) {
     WHERE ID_COMBO_AVIO = ${IdComboAvio}`;                      
     con.query(stringQuery, async function (err, rows, fields) {
     if (err) {
-    console.log(err);
+    
     return reject(err);
     }
-    console.log(rows);
+    
     resolve(rows);
     });
     });
@@ -1915,11 +1776,11 @@ function getComboFabricColors(IdComboFabric) {
   ID_SIZE_CURVE idSizeCurve FROM COMBO_FABRIC_COLOR WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
   con.query(stringQuery, async function (err, rows, fields) {
   if (err) {
-  console.log(err);
+  
   return reject(err);
   }
-  console.log("bb");
-  console.log(rows);
+  
+  
   resolve(rows);
   });
   });
@@ -1932,11 +1793,11 @@ function getComboFabricColors(IdComboFabric) {
     FROM COMBO_FABRIC_PRINT WHERE ID_COMBO_FABRIC = ${IdComboFabric}`;                      
     con.query(stringQuery, async function (err, rows, fields) {
     if (err) {
-    console.log(err);
+    
     return reject(err);
     }
-    console.log("bb");
-    console.log(rows);
+    
+    
     resolve(rows);
     });
     });
@@ -1947,22 +1808,21 @@ function getComboFabricColors(IdComboFabric) {
       return new Promise(function (resolve, reject) {
       let stringQuery = `
       SELECT PATH FROM PRODUCT_PICTURE WHERE ID_PRODUCT = ${idProduct}`;
-      console.log(stringQuery)                      
+                            
       con.query(stringQuery, async function (err, rows, fields) {
       if (err) {
-      console.log(err);
+      
       return reject(err);
       }
-      console.log("PIC");
-      console.log(rows);
+
+      
       resolve(rows);
       });
       });
       }
 
       function getSizeCurve(idSizeCurve, sizeCurveType) {
-        console.log("gettingsizeCurve");
-        console.log(sizeCurveType)
+
         let stringQuery;
         if(sizeCurveType === 1){
           stringQuery =`SELECT  THIRTYFOUR,
@@ -2010,11 +1870,10 @@ function getComboFabricColors(IdComboFabric) {
                  
         con.query(stringQuery, async function (err, rows, fields) {
         if (err) {
-        console.log(err);
+        
         return reject(err);
         }
-        console.log("Australia")
-        console.log(rows);
+
         resolve(rows);
         });
         });

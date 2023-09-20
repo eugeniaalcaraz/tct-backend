@@ -319,7 +319,7 @@ function getDepartments(idMerchant) {
     return new Promise(function (resolve, reject) {
         con.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
+                
                 return reject("error" + err);
             }
             resolve(rows);
@@ -473,7 +473,6 @@ function getAllProductsWithFilters(
     idMerchant,idSeason,idBrand,idManagmentUnit,idIndustry,
     idTipology,idConcept,idLine,idBodyFit,entryDate,warehouseEntryDate,storeDate,idShippingType,idFabric,prodName
 ) {
-    console.log("hola listado")
     let sqlString = `
     SELECT DISTINCT
         P.ID idProduct,
@@ -576,14 +575,13 @@ function getAllProductsWithFilters(
         sqlString += ` AND C.ID = ${idConcept}`;
     }
 
-    console.log(sqlString)
+
     return new Promise(function (resolve, reject) {
         con.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
+
                 return reject("error" + err);
             }
-            console.log(rows);
             resolve(rows);
         });
     });

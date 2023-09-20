@@ -7,19 +7,14 @@ module.exports = class ImpactaMerchant {
     }
 
     async getProduct(productNumber, idSeason, idMerchant) {
-        console.log("buenaass")
         try {
           let productData = await MerchantRepository.getProductFromNumber(productNumber, idSeason, idMerchant);
-          console.log("banana")
-          console.log(productData);
           let productPicture = await MerchantRepository.getProductPicture(productData[0].id);
           try{
             productPicture = await managePic(productPicture);
             productData[0].measurementTable = iconv.decode(productData[0].measurementTable, 'utf-8');
-            console.log("measure");
-            console.log(productData[0].measurementTable);
           }catch(exception){
-            console.log(exception);
+            
           }
           let cmbFab = [];
           let comboFabric = await MerchantRepository.getComboFabric(productData[0].id);
@@ -33,8 +28,6 @@ module.exports = class ImpactaMerchant {
             comboFab.composition = await composition;
 
             try{
-                console.log("BANDERAS");
-                console.log(comboFab);
                 await Promise.all(comboFab.comboColors.map(async (color) => {
                     let res = await MerchantRepository.getSizeCurve(color.idSizeCurve, productData[0].sizeCurveType);
                     color.sizeCurve = Object.values(res[0]).filter(value => typeof value === 'number');
@@ -45,8 +38,6 @@ module.exports = class ImpactaMerchant {
                     print.sizeCurve = Object.values(res[0]).filter(value => typeof value === 'number');
                 }));
             }catch(exception){
-                console.log("de sizeCuvre")
-                console.log(exception);
 
             }
 
@@ -61,9 +52,8 @@ module.exports = class ImpactaMerchant {
               combAv.colors = await comboAviosColorsPromise;
             }))
           }catch(exception){
-            console.log(exception);
+            
           }
-          console.log("saliendo")
           return {
             basicInfo : productData,
             productPicture: productPicture,
@@ -88,7 +78,6 @@ module.exports = class ImpactaMerchant {
     }
 
     getMerchantSeason({idMerchant, idSeason}){
-        console.log("id season: " + idSeason)
         return new Promise(function(resolve, reject){
             MerchantRepository.getMerchantSeason({idMerchant,idSeason}).then(result => {
                 resolve(result);
@@ -216,7 +205,6 @@ module.exports = class ImpactaMerchant {
     }
 
     getTipologies(idIndustry){
-        console.log("buscnado tipology")
         return new Promise(function(resolve, reject){
             MerchantRepository.getTipologiesForIndustry(idIndustry).then(result => {
                 resolve(result);
@@ -227,7 +215,6 @@ module.exports = class ImpactaMerchant {
     }
 
     getAllTipologies(idIndustry){
-        console.log("buscnado tipology")
         return new Promise(function(resolve, reject){
             MerchantRepository.getAllTipologies().then(result => {
                 resolve(result);
@@ -242,7 +229,7 @@ module.exports = class ImpactaMerchant {
             MerchantRepository.getFibers().then(result => {
                 resolve(result);
             }).catch(err => {
-                console.log(err)
+                
                 reject("Error - Whoops algo salió mal");
             });
        });
@@ -291,11 +278,8 @@ module.exports = class ImpactaMerchant {
         var result = [];
         return new Promise(async function(resolve, reject){
           let fabrics = await MerchantRepository.getFabrics(idMerchant);
-          console.log(fabrics);
           let promises = [];
           fabrics.forEach(async element => {
-            console.log("Recorriendo cada tela")
-            console.log(element);
             promises.push(new Promise(async function(resolve, innerReject){
               var fabricComposition = await MerchantRepository.getFabricComposition(element.Id);
               result.push({IdFabric: element.Id, Description: element.Description, Weight: element.Weight, Composition: fabricComposition})
@@ -334,7 +318,7 @@ module.exports = class ImpactaMerchant {
     getMerchantBrands({idMerchant}){
         return new Promise(function(resolve, reject){
             MerchantRepository.getMerchantBrands(idMerchant).then(result => {
-                console.log(result)
+                
                 resolve(result); 
             })
         })
@@ -359,13 +343,8 @@ module.exports = class ImpactaMerchant {
     }
 };
 async function managePic(item){
-    console.log("aconcagua")
     if(item[0].PATH != undefined){
-        // const base64String = Buffer.from(item[0].PATH, 'latin1').toString("base64");
-        // return "data:image/png;base64," + base64String;   
-        console.log(item[0].PATH instanceof Buffer); // Should output "true"
         stringValue = iconv.decode(item[0].PATH, 'utf-8');
-        console.log(stringValue);
         return stringValue;
     }
     else{

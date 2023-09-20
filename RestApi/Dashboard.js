@@ -73,7 +73,7 @@ router
             })
             .catch((err) => {
                 res.status(400);
-                console.log(err)
+                
                 res.send(err);
             });
     });
@@ -207,7 +207,6 @@ router.route("/getAllProducts/:idMerchant/:filters").get((req, res) => {
 });
 
 router.route("/getPendantApprovals/:idMerchant/:idSeason").get((req, res) => {
-    console.log("Aprovaciones pendientes");
     currentBrand = new DynamicClass("ImpactaDashboard");
     currentBrand
         .getPendantApprovals(req.params.idMerchant, req.params.idSeason)

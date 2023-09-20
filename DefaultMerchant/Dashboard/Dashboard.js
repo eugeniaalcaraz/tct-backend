@@ -140,7 +140,7 @@ module.exports = class ImpactaDashboard {
                 sampleInOk: sampleCombinedResult.dataInAllGood
             }
         }catch(exception){
-            console.log(exception)
+            
         }
 
       }
@@ -184,7 +184,6 @@ module.exports = class ImpactaDashboard {
                 idSeason,
             ).then((result) => {
                 const totalCount = result.reduce((sum, item) => sum + item['TOTALPERFABRIC'], 0);
-                console.log(totalCount)
                 let res = result.map(item => ({
                 Description: item.DESCRIPTION,
                 Weight: item.WEIGHT,
@@ -199,17 +198,9 @@ module.exports = class ImpactaDashboard {
     async SKUandPieces(idMerchant, idSeason) {
         var result = [];
         var pieces = await DashboardRepository.SKUandPieces(idMerchant, idSeason);
-        console.log("pieces") //Id_inudstry = IdManagmentUnit /idTipology ES ID INDUSTRY
-        console.log(pieces);
         var tipologies = await DashboardRepository.getTipologiesForSKUandPieces(idMerchant, idSeason);
         var idIndustries = tipologies.map(item => item.IdIndustry.toString()).join(',');
-        console.log("tipologies") //idTipology ES ID INDUSTRY , IdIndustry ES IDmANAGMENTUNIT
-        console.log(tipologies);
-        console.log(idIndustries);
         var countCombos = await DashboardRepository.getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant);
-        console.log("combo counts");
-        console.log(countCombos);
-
          tipologies = tipologies.map(item => {
             const matchingItem = countCombos.find(
               match => match.IdTipology === item.idTipology && match.IdIndustry === item.IdIndustry
@@ -225,9 +216,6 @@ module.exports = class ImpactaDashboard {
               return item;
             }
           });
-
-        console.log("final array");
-        console.log(tipologies);
         return new Promise(function (resolve, reject) {
             try{
                 pieces.map(x => {
@@ -236,11 +224,10 @@ module.exports = class ImpactaDashboard {
                     x.comboColorCount = matchingTipologies.reduce((sum, tipology) => sum + tipology.comboColorCount, 0);
                     x.comboPrintCount = matchingTipologies.reduce((sum, tipology) => sum + tipology.comboPrintCount, 0);
                     x.tipologies = matchingTipologies;
-                    
-                    console.log(x.tipologies);
+
                   });
             }catch(exception){
-                console.log(exception)
+                
             }
 
       
@@ -249,18 +236,13 @@ module.exports = class ImpactaDashboard {
       }
       
     async getPiecesByColor(idMerchant, idSeason) {
-        console.log("holaa");
         var response = [];
         return new Promise(function (resolve, reject) {
           DashboardRepository.getPiecesByColor(idMerchant, idSeason)
             .then(async (result) => {
               await Promise.all(result.map(async (res) => {
                 var sizeCurve = await MerchantRepository.getSizeCurve(res.ID_SIZE_CURVE, res.SIZE_CURVE_TYPE);
-                console.log("hakuna")
                 res.totalPieces = sizeCurve[0].total;
-                // console.log(res)
-                // console.log(sizeCurve)
-                // console.log(sizeCurve.total)
                 response.push({
                     idColor: res.idColor,
                     colorDescription: res.colorDescription,
@@ -325,13 +307,12 @@ module.exports = class ImpactaDashboard {
                         .getMerchantSeason({ idMerchant, idSeason })
                         .then((result) => {
                             if (result.length > 0) {
-                                console.log("hola")
                                 DashboardRepository.getProductsStatus({
                                     idMerchant,
                                     idSeason,
                                 })
                                     .then((result) => {
-                                        console.log(result)
+                                        
                                         const sum = result.reduce(
                                             (accumulator, object) => {
                                                 return (
@@ -345,9 +326,6 @@ module.exports = class ImpactaDashboard {
                                         var count = 0;
                                         try{
                                             result.forEach((element) => {
-                                                console.log("PRODUCSPERSEASON");
-                                                console.log(element)
-                                                console.log(element.PRODUCSPERSEASON);
                                             
                                                 arr[count] = {
                                                     Status: element.DESCRIPTION,
@@ -362,7 +340,7 @@ module.exports = class ImpactaDashboard {
                                             resolve(arr);
                                         }catch(exception){
                                             console.log("error");
-                                            console.log(exception)
+                                            
                                         }
 
                                  
@@ -385,17 +363,12 @@ module.exports = class ImpactaDashboard {
     async getCalendarData({ idMerchant, idSeason, month, year }) {
         var merchant = new DefaultMerchant();
         return new Promise(function (resolve, reject) {
-            console.log("1");
             if (validateDate) {
                 merchant.merchantExists({ idMerchant }).then((result) => {
-                    console.log("2");
-                    console.log(result.length)
                     if (result.length > 0) {
                         merchant
                             .getMerchantSeason({ idMerchant, idSeason })
-                            .then((result) => {
-                                console.log("3");
-                                console.log(result)
+                            .then((result) => {                                
                                 if (result.length > 0) {
                                     DashboardRepository.getShippingDates({
                                         idMerchant,
@@ -404,7 +377,6 @@ module.exports = class ImpactaDashboard {
                                         year,
                                     })
                                         .then((result) => {
-                                            console.log("4");
                                             resolve(result);
                                         })
                                         .catch((err) => {
@@ -461,14 +433,14 @@ module.exports = class ImpactaDashboard {
                                                 );
                                             })
                                             .catch((err) => {
-                                                console.log(err);
+                                                
                                                 reject(
                                                     "Error - Whoops algo salió mal"
                                                 );
                                             });
                                     })
                                     .catch((err) => {
-                                        console.log(err);
+                                        
                                         reject("Error - Whoops algo salió mal");
                                     });
                             } else {

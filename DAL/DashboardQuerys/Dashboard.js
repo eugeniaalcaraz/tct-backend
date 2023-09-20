@@ -46,7 +46,6 @@ function getBalanceData({ idMerchant, idSeason }) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -81,7 +80,6 @@ function getBalanceDatesConfig({ idMerchant }) {
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
-                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -96,11 +94,9 @@ function getShippingDates({ idMerchant, idSeason, month, year }) {
         FROM COMBO_FABRIC p INNER JOIN PRODUCT pr ON p.ID_PRODUCT = pr.ID
         INNER JOIN SEASON s ON pr.ID_SEASON = s.ID 
         AND pr.ID_MERCHANT = ${idMerchant} AND MONTH(p.ENTRY_DATE) = ${month} AND YEAR(p.ENTRY_DATE) = ${year}`;
-    console.log(stringQuery);
     return new Promise(function (resolve, reject) {
         pool.query(stringQuery, function (err, rows, fields) {
             if (err) {
-                console.log(err);
                 return reject(err);
             }
             resolve(rows);
@@ -117,10 +113,8 @@ function getProductsStatus({ idMerchant, idSeason }) {
         AND P.ID_SEASON = ${idSeason}
         GROUP BY P.SAMPLE_TYPE`;
     return new Promise(function (resolve, reject) {
-        console.log(stringQuery)
         pool.query(stringQuery.toUpperCase(), function (err, rows, fields) {
             if (err) {
-                console.log(err)
                 return reject(err);
             }
 
@@ -153,14 +147,13 @@ function getDataForMarginCalculations(idMerchant, idSeason) {
         idSeason +
         " AND ID_MERCHANT = " +
         idMerchant;
-        console.log(stringQuery)
     return new Promise(function (resolve, reject) {
         con.query(stringQuery, function (err, rows, fields) {
             if (err) {
-                console.log(err);
+
                 return reject(err);
             }
-            console.log(rows)
+
             resolve(rows);
         });
     });
@@ -404,7 +397,6 @@ function getAllSKUsAndPieces(idMerchant, idSeason) {
 }
 
 function getPendantAvios(idSeason, idMerchant) {
-    console.log("getting pendant avios")
     let sqlString = `
     SELECT COUNT(*) cantidadSinAprobar 
     FROM COMBO_AVIO CA
@@ -414,16 +406,14 @@ function getPendantAvios(idSeason, idMerchant) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
                 return sqlString;
             }
-            console.log(rows);
             resolve(rows);
         });
     });
 }
 function getTotalRequestedModeling(idSeason, idMerchant) {
-    console.log("getting pendant avios")
+
     let sqlString = `
     SELECT COUNT(*) total
     FROM PRODUCT P 
@@ -433,17 +423,15 @@ function getTotalRequestedModeling(idSeason, idMerchant) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
+
                 return sqlString;
             }
-            console.log(rows);
             resolve(rows);
         });
     });
 }
 
 function getPendantModeling(idSeason, idMerchant) {
-    console.log("getting pendant avios")
     let sqlString = `
     SELECT COUNT(*) cantidadSinAprobar
     FROM PRODUCT P 
@@ -453,10 +441,10 @@ function getPendantModeling(idSeason, idMerchant) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err);
+
                 return sqlString;
             }
-            console.log(rows);
+
             resolve(rows);
         });
     });
@@ -525,11 +513,6 @@ function getTotalRequestedAvios(idSeason, idMerchant) {
 async function getTotalRequestedColorsAndPrints(idSeason, idMerchant){
     let pendantColors = await getTotalRequestedColors(idSeason, idMerchant);
     let pendantPrints = await getTotalRequestedPrints(idSeason, idMerchant);
-
-    console.log("elefante")
-    console.log(pendantColors)
-    console.log(pendantPrints)
-    console.log((pendantColors[0].total + pendantPrints[0].total) / 2)
     return (pendantColors[0].total + pendantPrints[0].total) / 2;
 }
 
@@ -603,11 +586,9 @@ function SKUandPieces(idMerchant, idSeason) {
         P.ID_SEASON = ${idSeason} AND
         P.ID_MERCHANT = ${idMerchant}
     GROUP BY I.ID, I.DESCRIPTION;`;
-    console.log(sqlString)
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err)
                 return reject(err);
             }
 
@@ -631,11 +612,10 @@ function getCountCombosForSKUandPieces(idIndustries, idSeason, idMerchant) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err)
+
                 return reject(err);
             }
-            console.log("holaaaaaaaaaaaaaa");
-            console.log(rows)
+
             resolve(rows);
         });
     });
@@ -658,7 +638,7 @@ function getTipologiesForSKUandPieces(idMerchant, idSeason) {
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err)
+
                 return reject(err);
             }
 
@@ -690,9 +670,7 @@ function getTotalRequestedQualities(idSeason, idMerchant) {
 }
 
 function getPiecesByColor(idMerchant, idSeason) {
-    console.log("aloo")
-    console.log(idMerchant)
-    console.log(idSeason)
+
 
     let sqlString = `SELECT CAC.ID_COLOR idColor, COUNT(*) pieces, C.DESCRIPTION colorDescription, C.RGB RGB, CAC.ID_SIZE_CURVE, P.SIZE_CURVE_TYPE
     FROM COMBO_FABRIC_COLOR CAC
@@ -702,23 +680,20 @@ function getPiecesByColor(idMerchant, idSeason) {
     WHERE P.ID_SEASON = ${idSeason} AND P.ID_MERCHANT = ${idMerchant}
     GROUP BY CAC.ID_COLOR, C.DESCRIPTION, C.RGB, CAC.ID_SIZE_CURVE, P.SIZE_CURVE_TYPE;`;
 
-    console.log(sqlString)
     return new Promise(function (resolve, reject) {
         pool.query(sqlString, function (err, rows, fields) {
             if (err) {
-                console.log(err)
+
                 return reject(err);
             }
-            console.log(rows)
+
             resolve(rows);
         });
     });
 }
 
 async function getPendantApprovals(idMerchant, idSeason) {
-    console.log("getting approvals");
-    console.log(idMerchant);
-    console.log(idSeason);
+
     return new Promise(function (resolve, reject) {
         let pendantAvios;
         let pendantColorsAndPrints;
@@ -732,61 +707,29 @@ async function getPendantApprovals(idMerchant, idSeason) {
         // Balance, nuevo campo, balance
         getPendantAvios(idSeason, idMerchant).then((result) => {
             pendantAvios = result[0].cantidadSinAprobar;
-            console.log("a");
-            console.log(result[0]);
-            console.log(pendantAvios)
+
             getPendantColorsAndPrints(idSeason, idMerchant).then((result) => {
                 pendantColorsAndPrints = result;
-                console.log("b");
-                console.log(result);
-                console.log(pendantColorsAndPrints)
+
                 getTotalRequestedAvios(idSeason, idMerchant).then((result) => {
                     totalAvios = result[0].total;
-                    console.log("c");
-                    console.log(result[0]);
-                    console.log(totalAvios);
+
                     getTotalRequestedColorsAndPrints(idSeason, idMerchant).then(
                         (result) => {
                             totalRequestedColorsAndPrints = result === 0 ? 1 : result;
-                            console.log("d");
-                
-                            console.log(totalRequestedColorsAndPrints)
                             getPendantQualities(idSeason, idMerchant).then((result) => {
-                                console.log("e");
-                                console.log(result[0]);
                                 pendantQualities = result[0].cantidadSinAprobar;
-                                console.log(pendantQualities)
                                 getTotalRequestedQualities(idSeason, idMerchant).then((result) => {
                                     totalRequestedQualities = result[0].total === 0 ? 1 : result[0].total ;
-                                    console.log("fQUAL");
-                                    console.log(result[0]);
-                                    console.log(totalRequestedQualities)
                                     getPendantModeling(idSeason, idMerchant).then((result) => {
                                         pendantModeling = result[0].cantidadSinAprobar;
-                                        console.log("g");
-                                        console.log(result[0]);
-
-                                        console.log(pendantModeling);
                                         getTotalRequestedModeling(idSeason, idMerchant).then((result) => {
                                             totalRequestedModeling = result[0].total === 0 ? 1 : result[0].total ;
-                                            // console.log("h");
-                                            // console.log(result[0]);
-                                            // console.log(totalRequestedModeling)
-                                            console.log("jurafa");
-                                            console.log(pendantAvios)
-                                            console.log(totalAvios)
+
                                             let percentageAvios = (pendantAvios * 100) / totalAvios;
                                             let percentageColorsAndPrints = (pendantColorsAndPrints * 100) / totalRequestedColorsAndPrints;
                                             let percentageQualities = (pendantQualities * 100) / totalRequestedQualities;
                                             let percentageModeling = (pendantModeling * 100) / totalRequestedModeling;
-                                            // console.log("eeeeeeee")
-                                            // console.log(percentageAvios)
-                                            // console.log(pendantAvios)
-                                            // console.log(totalAvios)
-                                            console.log("seccion PercentageAvios");
-                                            console.log(percentageAvios);
-                                            console.log(pendantAvios);
-                                            console.log(totalAvios)
                                             let resp = {
                                                 PercentageAvios: Math.round(percentageAvios),
                                                 PercentageColorsAndPrints: Math.round(percentageColorsAndPrints),
