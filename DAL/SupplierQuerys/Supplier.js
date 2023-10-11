@@ -35,6 +35,21 @@ function getSupplierPeopleCertifications() {
     });
   }
 
+  function getSupplierProcessCertifications() {
+    let stringQuery = `SELECT ID id, DESCRIPTION description,TYPE type,
+     'process' as category FROM PROCESS_CERTIFICATION;`;
+    return new Promise(function (resolve, reject) {
+        
+      con.query(stringQuery, function (err, rows, fields) {
+        if (err) {
+          
+          return reject(err);
+        }
+        
+        resolve(rows);
+      });
+    });
+  }
 
 function getSupplierTypes() {
     let stringQuery = `SELECT ID id, DESCRIPTION description FROM SUPPLIER_TYPE;`;
@@ -398,3 +413,4 @@ module.exports.deleteSupplierCertifications = deleteSupplierCertifications;
 module.exports.getSupplierForFilter = getSupplierForFilter;
 module.exports.getSuppliersCertifications = getSuppliersCertifications;
 module.exports.getProductTypesForSuppliersId = getProductTypesForSuppliersId;
+module.exports.getSupplierProcessCertifications = getSupplierProcessCertifications;

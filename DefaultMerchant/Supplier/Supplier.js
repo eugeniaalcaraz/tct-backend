@@ -15,16 +15,15 @@ module.exports = class ImpactaSupplier {
         var supplierProductTypes = await supplierRepository.getSupplierProductTypes();
         var countries = await merchantRepository.getCountries();
         var peopleCertifications = await supplierRepository.getSupplierPeopleCertifications();
-        // const peopleModArray = peopleCertifications.map(item => ({
-        //     ...item,
-        //     cat: 'people'
-        //   }));
         var planetCertifications = await supplierRepository.getSupplierPlanetCertifications();
+        var processCertifications = await supplierRepository.getSupplierProcessCertifications();
+        console.log(processCertifications)
         return {'supplierTypes': supplierTypes,
                 'supplierProductTypes': supplierProductTypes,
                 'countries': countries,
                 'peopleCertifications':  peopleCertifications,
-                'planetCertifications': planetCertifications};
+                'planetCertifications': planetCertifications,
+                'processCertifications': processCertifications};
     }
     async getAllSuppliersForMerchant(idMerchant){
         var basicInfo = await supplierRepository.getSupplierForFilter(idMerchant);
