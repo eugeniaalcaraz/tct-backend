@@ -63,11 +63,17 @@ router.route("/getSupplier/:IdSupplier").get((req, res) => {
 });
 
 
-router.route("/getSuppliersForMerchant/:IdMerchant").get((req, res) => {
+router.route("/getSuppliersForMerchant").get((req, res) => {
+    const idMerchant = req.query.idMerchant;
+    const score = req.query.score; 
+    const alias = req.query.alias; 
+    const origin = req.query.origin; 
+    const type = req.query.type; 
+    const product = req.query.product; 
     console.log("getting all suppliers");
     currentBrand = new DynamicClass("ImpactaSupplier");
     currentBrand
-        .getAllSuppliersForMerchant(req.params.IdMerchant)
+        .getAllSuppliersForMerchant(idMerchant, score, alias, origin, type, product)
         .then((result) => {
             res.status(200);
             res.send(result);

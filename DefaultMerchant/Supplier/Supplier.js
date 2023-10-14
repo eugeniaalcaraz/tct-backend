@@ -1,5 +1,6 @@
 const supplierRepository = require('../../DAL/SupplierQuerys/Supplier');
 const merchantRepository = require('../../DAL/MerchantQuerys/Merchant');
+const { differenceInYears } = require("date-fns");
 const iconv = require('iconv-lite');
 
 module.exports = class ImpactaSupplier {
@@ -17,7 +18,7 @@ module.exports = class ImpactaSupplier {
         var peopleCertifications = await supplierRepository.getSupplierPeopleCertifications();
         var planetCertifications = await supplierRepository.getSupplierPlanetCertifications();
         var processCertifications = await supplierRepository.getSupplierProcessCertifications();
-        console.log(processCertifications)
+
         return {'supplierTypes': supplierTypes,
                 'supplierProductTypes': supplierProductTypes,
                 'countries': countries,
@@ -25,28 +26,35 @@ module.exports = class ImpactaSupplier {
                 'planetCertifications': planetCertifications,
                 'processCertifications': processCertifications};
     }
-    async getAllSuppliersForMerchant(idMerchant){
-        var basicInfo = await supplierRepository.getSupplierForFilter(idMerchant);
-        var supplierIds = basicInfo.map(item => item.id.toString()).join(',');        
-        console.log(supplierIds);
-        var supplierCertifications = await supplierRepository.getSuppliersCertifications(supplierIds);
-        var supplierProductTypes = await supplierRepository.getProductTypesForSuppliersId(supplierIds);
-            const result = await basicInfo.map(a => {
-                const certifications = supplierCertifications.filter(b => b.idSupplier === a.id);
-                const productTypes = supplierProductTypes.filter(p => p.idSupplier === a.id);
-                console.log("certification in making");
-                console.log(certifications);
-                Object.defineProperty(a, 'countryInHighRisk', {
-                    value: a.countryInHighRisk === 1 ? true : false,
-                    writable: true // Make sure it is writable
+    async getAllSuppliersForMerchant(idMerchant, score, alias, origin, type, product){
+        if(idMerchant === undefined){
+            return "Debe ingresar un merchant";
+        }
+        var basicInfo = await supplierRepository.getSupplierForFilter(idMerchant,score, alias, origin,type);
+        var result = basicInfo;
+        if(basicInfo.length > 0){
+            var supplierIds = basicInfo.map(item => item.id.toString()).join(',');        
+            var supplierPlanetCertifications = await supplierRepository.getSupplierPlanetCertifications(supplierIds);//supplierRepository.getSupplierPeopleCertifications(supplierIds);
+            var supplierPeopleCertifications = await supplierRepository.getSupplierPeopleCertifications(supplierIds);
+            var supplierProcessCertifications = await supplierRepository.getSupplierProcessCertifications(supplierIds); 
+            var supplierProductTypes = await supplierRepository.getProductTypesForSuppliersId(supplierIds, product);
+                result = await basicInfo.map( a => {
+                    const peopleCertifications = supplierPeopleCertifications.filter(b => b.idSupplier === a.id);
+                    const planetCertifications = supplierPlanetCertifications.filter(b => b.idSupplier === a.id);              
+                    const processCertifications = supplierProcessCertifications.filter(b => b.idSupplier === a.id);            
+                    const productTypes = supplierProductTypes.filter(p => p.idSupplier === a.id);
+                    const commRelationship = GetCommercialRelationship(a);
+                    Object.defineProperty(a, 'countryInHighRisk', {
+                        value: a.countryInHighRisk === 1 ? true : false,
+                        writable: true // Make sure it is writable
+                      });
+                    return { ...a, commercialRelationship: commRelationship,planetCertifications: Array.from(planetCertifications),peopleCertifications: Array.from(peopleCertifications), processCertifications: Array.from(processCertifications), productTypes: Array.from(productTypes) };
+                    // or return { ...a, certifications: [...certifications] };
                   });
-                return { ...a, certifications: Array.from(certifications), productTypes: Array.from(productTypes) };
-                // or return { ...a, certifications: [...certifications] };
-              });
+        }
+
 
         return result;
-        console.log("productTypes")
-        console.log(productTypes);
     }
  
     async getSupplier(idSupplier){
@@ -74,12 +82,13 @@ module.exports = class ImpactaSupplier {
             'productTypes': supplierProductTypes.map(item => item.productTypeId),
             'supplierCertifications': supplierCertifications.map(item => ({
                 ...item,
-                category: item.category === "1" ? "planet" : "people"
+                category: getCertificationCategory(item.category)
               }))
         })    
 
         });
     }
+     
 
     updateSupplier(data){
         return new Promise(async function(resolve, reject){
@@ -97,7 +106,7 @@ module.exports = class ImpactaSupplier {
                 if(data.certification !== undefined && data.certification !== null){
                     supplierRepository.deleteSupplierCertifications(data.id);
                     var performanceRules = await getSupplierPerformanceConfiguration();
-                    performance = determinePerformance(data.certifications, performanceRules);
+                    performance = determinePerformance(data.certifications.filter(x => x.category === "people" || x.category === "planet"), performanceRules);
                     await saveSupplierCertifications(data.id, data);
                 };
                 supplierRepository.updateSupplier(data, performance);
@@ -115,7 +124,7 @@ module.exports = class ImpactaSupplier {
                 validateObligatoryData(data);
                 validateOptionalData(data);
                 var performanceRules = await getSupplierPerformanceConfiguration();
-                var performance = determinePerformance(data.certifications, performanceRules);
+                var performance = determinePerformance(data.certifications.filter(x => x.category === "people" || x.category === "planet"), performanceRules);
                 const supplierId = await saveSupplierBasicData(data, performance);
                 await saveSupplierProductTypes(supplierId, data);
                 await saveSupplierCertifications(supplierId, data);
@@ -204,10 +213,18 @@ async function saveSupplierBasicData(data, performance){
 async function saveSupplierCertifications(supplierId, data) {
     await new Promise(function(resolve, reject) {
     try {
-        const certfications = data.certifications; 
+        const certfications = data.certifications;
         for (const certification of certfications) {
-                var type = certification.type === 'planet' ? 1 : 2;
-                supplierRepository.saveSupplierCertifications(supplierId, certification.id,type, certification.subCat)
+                var type;
+                if(certification.category === 'planet'){
+                    type = 1;
+                }else if(certification.category === 'people'){
+                    type = 2;
+                }else{
+                    type = 3;
+                    certification.subCat = '-';
+                }
+                supplierRepository.saveSupplierCertifications(supplierId, certification.id, type, certification.subCat)
                     .then(result => {
                         resolve(result);
                     })
@@ -260,6 +277,15 @@ function validateOrderEstimate(estimatedAnualOrder){
         if(isNaN(estimatedAnualOrder)){
             throw new Error("El pedido estimado anual debe de ser numerico");
         }
+    }
+}
+function getCertificationCategory(value) {
+    if(value === '1'){
+        return "planet";
+    }else if(value === "2"){
+        return "people";
+    }else{
+        return "process";
     }
 }
 
@@ -368,5 +394,26 @@ function validateAlias(alias){
 function validateMerchant(idMerchant){
     if(idMerchant === undefined){
         throw new Error("Debe ingresar un id de comercio al que pertenece el proveedor");
+    }
+}
+
+function GetCommercialRelationship(a){
+    const providedDate = new Date(a.relationShipDate);
+    const currentDate = new Date();
+    const yearsDifference = differenceInYears(currentDate, providedDate);
+    if(a.hasAnualContract === 1){
+        if(yearsDifference < 3){
+            return 'En vías de consolidarse';
+        }else{
+            return 'Consolidada';
+        }
+    }else{
+        if(yearsDifference < 3){
+            return 'Reciente';
+        }else if(yearsDifference > 5){
+            return 'Muy consolidada';
+        }else{
+            return 'En vías de consolidarse';
+        }
     }
 }
